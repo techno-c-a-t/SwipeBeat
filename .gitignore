@@ -1,0 +1,19 @@
+# Сборочные файлы (игнорирует сборку и в корне, и внутри app/)
+build/
+.gradle/
+.externalNativeBuild/
+.cxx/
+
+# Настройки Android Studio (игнорируем всю папку полностью)
+.idea/
+*.iml
+
+# Локальные файлы и секреты
+local.properties
+*.jks
+*.keystore
+
+# Мусор ОС и логи
+.DS_Store
+/captures/
+*.log
