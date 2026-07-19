@@ -1,43 +1,1052 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="#09090B"
+    tools:context=".MainActivity">
 
-    <!-- Кнопка запуска сканирования -->
-    <Button
-        android:id="@+id/btnScan"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Сканировать музыку" />
-
-    <Button
-        android:id="@+id/btnSelectFolder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Выбрать папку для плейлистов" />
-
-    <Button
-        android:id="@+id/btnCreatePlaylist"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Создать тестовый плейлист" />
-
-    <!-- Область прокрутки для вывода списка -->
-    <ScrollView
+    <!-- ================= ЭКРАН 1: ПОДГОТОВКА ================= -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/screenPrep"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="16dp">
+        android:padding="20dp"
+        android:visibility="visible">
+
+        <!-- Header -->
+        <TextView
+            android:id="@+id/tvAppName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SlideBit"
+            android:textColor="#F4F4F5"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/cardSelectSource"
+            app:layout_constraintVertical_chainStyle="packed" />
+
+        <TextView
+            android:id="@+id/btnSettings"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_circle_translucent"
+            android:text="⚙️"
+            android:textSize="18sp"
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Block 1: Choose Sources -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardSelectSource"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="#18181B"
+            app:layout_constraintTop_toBottomOf="@id/btnSettings">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Выбрать источники"
+                    android:textColor="#71717A"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvSourceStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Не выбрано (Нажмите для выбора)"
+                    android:textColor="#F4F4F5"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="4dp" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Block 2: Session Logic -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardSessionLogic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="#18181B"
+            app:layout_constraintTop_toBottomOf="@id/cardSelectSource">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Логика сессии"
+                    android:textColor="#71717A"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:orientation="horizontal"
+                    android:background="#27272A"
+                    android:padding="3dp"
+                    android:weightSum="3">
+
+                    <TextView
+                        android:id="@+id/btnLogicUnion"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="Объединить"
+                        android:textColor="#F4F4F5"
+                        android:gravity="center"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_tab_selected" />
+
+                    <TextView
+                        android:id="@+id/btnLogicDup"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="Дубликаты"
+                        android:textColor="#71717A"
+                        android:gravity="center"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnLogicUnique"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="Уникальные"
+                        android:textColor="#71717A"
+                        android:gravity="center"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Block 3: Output Playlist -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardOutputPlaylist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="#18181B"
+            app:layout_constraintTop_toBottomOf="@id/cardSessionLogic">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Плейлист на выходе"
+                    android:textColor="#71717A"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvOutputPlaylistName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sorted_Slidebox.m3u8"
+                    android:textColor="#F4F4F5"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="4dp" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
 
         <TextView
             android:id="@+id/tvLogs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Нажмите кнопку для начала..."
-            android:textSize="14sp" />
-    </ScrollView>
+            android:layout_marginTop="16dp"
+            android:text="Выберите источник и нажмите «Начать новую сортировку»"
+            android:textColor="#71717A"
+            android:textSize="12sp"
+            android:gravity="center"
+            app:layout_constraintTop_toBottomOf="@id/cardOutputPlaylist" />
 
-</LinearLayout>
+        <!-- Bottom Action Buttons -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnStartSort"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_button_primary"
+            android:text="Начать новую сортировку"
+            android:textAllCaps="false"
+            android:textColor="#09090B"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@id/btnResumeSort"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnResumeSort"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_button_secondary"
+            android:text="Продолжить прошлую сессию"
+            android:textAllCaps="false"
+            android:textColor="#F4F4F5"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="8dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- ================= ЭКРАН 2: СОРТИРОВКА ================= -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/screenSort"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        android:visibility="gone">
+
+        <!-- Top Tapping Zone to Trigger HUD -->
+        <FrameLayout
+            android:id="@+id/viewTopTrigger"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:background="#0DFFFFFF"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Нажмите здесь для панели управления (громкость / скорость)"
+                android:textColor="#71717A"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <!-- Animated Top HUD (Hidden by default) -->
+        <LinearLayout
+            android:id="@+id/layoutTopHUD"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="invisible"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <SeekBar
+                android:id="@+id/hudSeekBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="0"
+                android:thumb="@null"
+                android:progressTint="#71717A"
+                android:progressBackgroundTint="#27272A" />
+
+            <TextView
+                android:id="@+id/tvCounter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 / 0"
+                android:textColor="#71717A"
+                android:textSize="12sp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="2dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="4dp">
+
+                <!-- Volume Control (Separate Line) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:text="🔊"
+                        android:textSize="14sp"
+                        android:textColor="#71717A" />
+                    <SeekBar
+                        android:id="@+id/sbVolume"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="100"
+                        android:progress="100"
+                        android:progressTint="#71717A"
+                        android:thumbTint="#A1A1AA" />
+                </LinearLayout>
+
+                <!-- Speed Control (Separate Line) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+                    <TextView
+                        android:id="@+id/tvSpeedLabel"
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:text="⚡ 1.0x"
+                        android:textSize="12sp"
+                        android:textColor="#71717A" />
+                    <SeekBar
+                        android:id="@+id/sbSpeed"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="45"
+                        android:progress="5"
+                        android:progressTint="#71717A"
+                        android:thumbTint="#A1A1AA" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Exit and History actions -->
+        <TextView
+            android:id="@+id/btnExitSort"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✕ Выход"
+            android:textColor="#71717A"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:padding="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/viewTopTrigger" />
+
+        <TextView
+            android:id="@+id/btnOpenHistory"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_circle_translucent"
+            android:text="🕒"
+            android:textSize="18sp"
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/viewTopTrigger" />
+
+        <!-- Track Card Frame Container -->
+        <FrameLayout
+            android:id="@+id/cardContainer"
+            android:layout_width="match_parent"
+            android:layout_height="340dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            app:layout_constraintBottom_toTopOf="@id/layoutTrackProgress"
+            app:layout_constraintTop_toBottomOf="@id/btnExitSort">
+
+            <!-- CardView track -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardTrack"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="#18181B">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <!-- Cover image -->
+                    <FrameLayout
+                        android:id="@+id/albumArtContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="3.2"
+                        android:background="@drawable/bg_album_gradient">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="🎵"
+                            android:textSize="80sp"
+                            android:alpha="0.25" />
+
+                        <ImageView
+                            android:id="@+id/ivAlbumArt"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone" />
+
+                        <!-- Play/Pause Quick Flash Indicator -->
+                        <TextView
+                            android:id="@+id/tvPauseIndicator"
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            android:layout_gravity="center"
+                            android:background="@drawable/bg_circle_translucent"
+                            android:text="⏸"
+                            android:textColor="#F4F4F5"
+                            android:textSize="32sp"
+                            android:gravity="center"
+                            android:visibility="gone" />
+
+                        <!-- Swipe overlays -->
+                        <View
+                            android:id="@+id/viewApproveOverlay"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="#A022C55E"
+                            android:visibility="gone" />
+
+                        <View
+                            android:id="@+id/viewRejectOverlay"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="#A0EF4444"
+                            android:visibility="gone" />
+
+                        <!-- Long Press Info Overlay -->
+                        <LinearLayout
+                            android:id="@+id/layoutInfoOverlay"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="#E6000000"
+                            android:orientation="vertical"
+                            android:padding="24dp"
+                            android:gravity="center"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Информация о файле"
+                                android:textColor="#F4F4F5"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:layout_marginBottom="16dp" />
+
+                            <TextView
+                                android:id="@+id/tvInfoPath"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Путь: /storage/emulated/0/..."
+                                android:textColor="#A1A1AA"
+                                android:textSize="12sp"
+                                android:layout_marginBottom="8dp"
+                                android:gravity="center" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Формат: MP3 / Stereo"
+                                android:textColor="#A1A1AA"
+                                android:textSize="12sp"
+                                android:layout_marginBottom="8dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Битрейт: 320 kbps (CBR)"
+                                android:textColor="#A1A1AA"
+                                android:textSize="12sp"
+                                android:layout_marginBottom="8dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Частота: 44.1 kHz"
+                                android:textColor="#A1A1AA"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                    </FrameLayout>
+
+                    <!-- Text labels -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:padding="20dp"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/tvTrackTitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Название песни"
+                            android:textColor="#F4F4F5"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:ellipsize="end"
+                            android:maxLines="1" />
+
+                        <TextView
+                            android:id="@+id/tvTrackArtist"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Исполнитель"
+                            android:textColor="#71717A"
+                            android:textSize="15sp"
+                            android:ellipsize="end"
+                            android:maxLines="1" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+        </FrameLayout>
+
+        <!-- Track Progress Control -->
+        <LinearLayout
+            android:id="@+id/layoutTrackProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp"
+            app:layout_constraintBottom_toTopOf="@id/tvSwipeHintText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <TextView
+                android:id="@+id/tvTrackCurrentTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0:00"
+                android:textColor="#71717A"
+                android:textSize="11sp" />
+
+            <SeekBar
+                android:id="@+id/sbTrackProgress"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="100"
+                android:progress="0"
+                android:progressTint="#E4E4E7"
+                android:thumbTint="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/tvTrackDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0:00"
+                android:textColor="#71717A"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- bottom note -->
+        <TextView
+            android:id="@+id/tvSwipeHintText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Свайп Вверх — Одобрить, Свайп Вниз — Отклонить"
+            android:textColor="#71717A"
+            android:textSize="11sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginBottom="8dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- ================= ЭКРАН 4: НАСТРОЙКИ ================= -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/screenSettings"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="20dp"
+        android:visibility="gone">
+
+        <!-- Header -->
+        <TextView
+            android:id="@+id/btnBackFromSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="← Назад"
+            android:textColor="#71717A"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:padding="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvSettingsTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Настройки"
+            android:textColor="#F4F4F5"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/btnRestoreDefaults"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Сбросить"
+            android:textColor="#EF4444"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:padding="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@id/btnBackFromSettings"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Раздел 1: Умный старт -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Умный старт"
+                    android:textColor="#71717A"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textAllCaps="true"
+                    android:layout_marginBottom="8dp" />
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="12dp"
+                    app:cardBackgroundColor="#18181B"
+                    android:layout_marginBottom="24dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Быстрый старт (Пропуск интро)"
+                                android:textColor="#F4F4F5"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/switchSmartStart"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true" />
+                        </RelativeLayout>
+
+                        <!-- Seekbars inside smart start -->
+                        <TextView
+                            android:id="@+id/tvSmartStartSecLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Смещение: 30 сек"
+                            android:textColor="#A1A1AA"
+                            android:textSize="12sp"
+                            android:layout_marginTop="16dp" />
+                        <SeekBar
+                            android:id="@+id/sbSmartStartSec"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="60"
+                            android:progress="30"
+                            android:layout_marginTop="4dp" />
+
+                        <TextView
+                            android:id="@+id/tvSmartStartPctLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Смещение по процентам: 10%"
+                            android:textColor="#A1A1AA"
+                            android:textSize="12sp"
+                            android:layout_marginTop="12dp" />
+                        <SeekBar
+                            android:id="@+id/sbSmartStartPct"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="50"
+                            android:progress="10"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- Раздел 2: Черный список папок -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Черный список папок"
+                    android:textColor="#71717A"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textAllCaps="true"
+                    android:layout_marginBottom="8dp" />
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="12dp"
+                    app:cardBackgroundColor="#18181B"
+                    android:layout_marginBottom="24dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="8dp">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="/storage/emulated/0/Music/SystemAlerts"
+                                android:textColor="#E4E4E7"
+                                android:textSize="13sp" />
+                            <TextView
+                                android:id="@+id/btnMockFolderDelete1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="✕"
+                                android:textColor="#EF4444"
+                                android:padding="8dp"/>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="/storage/emulated/0/WhatsApp/Media/VoiceNotes"
+                                android:textColor="#E4E4E7"
+                                android:textSize="13sp" />
+                            <TextView
+                                android:id="@+id/btnMockFolderDelete2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="✕"
+                                android:textColor="#EF4444"
+                                android:padding="8dp"/>
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- Раздел 3: Интерфейс и жесты -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Интерфейс и жесты"
+                    android:textColor="#71717A"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textAllCaps="true"
+                    android:layout_marginBottom="8dp" />
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="12dp"
+                    app:cardBackgroundColor="#18181B"
+                    android:layout_marginBottom="24dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <!-- Vibration strength -->
+                        <TextView
+                            android:id="@+id/tvVibeLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Сила вибрации: 80 ms"
+                            android:textColor="#F4F4F5"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                        <SeekBar
+                            android:id="@+id/sbVibrationStrength"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="200"
+                            android:progress="80"
+                            android:layout_marginTop="8dp" />
+
+                        <!-- Card scale -->
+                        <TextView
+                            android:id="@+id/tvScaleLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Масштаб карточки: 100%"
+                            android:textColor="#F4F4F5"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="16dp" />
+                        <SeekBar
+                            android:id="@+id/sbCardScale"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="40"
+                            android:progress="20"
+                            android:layout_marginTop="8dp" />
+
+                        <!-- Autoplay Switch -->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Автостарт воспроизведения"
+                                android:textColor="#F4F4F5"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/switchAutoplay"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:checked="true" />
+                        </RelativeLayout>
+
+                        <!-- Autosave Interval -->
+                        <TextView
+                            android:id="@+id/tvAutosaveLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Автосохранение сессии: каждые 5 треков"
+                            android:textColor="#F4F4F5"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="16dp" />
+                        <SeekBar
+                            android:id="@+id/sbAutosaveInterval"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="20"
+                            android:progress="5"
+                            android:layout_marginTop="8dp" />
+
+                        <!-- Theme selector -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Цветовая схема"
+                            android:textColor="#F4F4F5"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="16dp" />
+
+                        <RadioGroup
+                            android:id="@+id/rgTheme"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="8dp"
+                            android:weightSum="3">
+                            <RadioButton
+                                android:id="@+id/rbThemeLight"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Светлая"
+                                android:textColor="#A1A1AA"
+                                android:buttonTint="#F4F4F5"
+                                android:textSize="12sp" />
+                            <RadioButton
+                                android:id="@+id/rbThemeDark"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Темная"
+                                android:textColor="#F4F4F5"
+                                android:buttonTint="#F4F4F5"
+                                android:checked="true"
+                                android:textSize="12sp" />
+                            <RadioButton
+                                android:id="@+id/rbThemeAmoled"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="AMOLED"
+                                android:textColor="#A1A1AA"
+                                android:buttonTint="#F4F4F5"
+                                android:textSize="12sp" />
+                        </RadioGroup>
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- Раздел 4: Дополнительно -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Дополнительно"
+                    android:textColor="#71717A"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textAllCaps="true"
+                    android:layout_marginBottom="8dp" />
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="12dp"
+                    app:cardBackgroundColor="#18181B"
+                    android:layout_marginBottom="24dp">
+
+                    <LinearLayout
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:orientation="vertical"
+                         android:padding="16dp">
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Подробные настройки"
+                                android:textColor="#F4F4F5"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/switchDetailedSettings"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true" />
+                        </RelativeLayout>
+
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Подробные настройки -->
+                <LinearLayout
+                    android:id="@+id/layoutDetailedSettingsSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Расширенные параметры"
+                        android:textColor="#71717A"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textAllCaps="true"
+                        android:layout_marginBottom="8dp" />
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="12dp"
+                        app:cardBackgroundColor="#18181B"
+                        android:layout_marginBottom="24dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Расширенный режим источников"
+                                    android:textColor="#F4F4F5"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+                                <androidx.appcompat.widget.SwitchCompat
+                                    android:id="@+id/switchAdvancedSources"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true" />
+                            </RelativeLayout>
+
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </ScrollView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>

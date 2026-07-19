@@ -8,6 +8,7 @@ appcompat = "1.7.1"
 material = "1.12.0"
 activity = "1.9.3"
 constraintlayout = "2.2.1"
+media3 = "1.3.1"
 
 
 [libraries]
@@ -19,7 +20,9 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+
 
