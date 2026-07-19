@@ -99,6 +99,32 @@ class LocalDirectoryScanner(private val context: Context) {
         return tracks
     }
 
+    private fun getMetadata(file: androidx.documentfile.provider.DocumentFile): Pair<String, String> {
+        val retriever = android.media.MediaMetadataRetriever()
+        var title = file.name?.substringBeforeLast(".") ?: "Unknown Track"
+        var artist = "Unknown Artist"
+        try {
+            context.contentResolver.openFileDescriptor(file.uri, "r")?.use { pfd ->
+                retriever.setDataSource(pfd.fileDescriptor)
+                val metaTitle = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_TITLE)
+                val metaArtist = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST)
+                if (!metaTitle.isNullOrEmpty()) {
+                    title = metaTitle
+                }
+                if (!metaArtist.isNullOrEmpty()) {
+                    artist = metaArtist
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            try {
+                retriever.release()
+            } catch (e: Exception) {}
+        }
+        return Pair(title, artist)
+    }
+
     private fun scanDirRecursive(dir: androidx.documentfile.provider.DocumentFile, tracks: MutableList<Track>) {
         val files = dir.listFiles()
         for (file in files) {
@@ -111,12 +137,12 @@ class LocalDirectoryScanner(private val context: Context) {
                     lowerName.endsWith(".ogg") || lowerName.endsWith(".flac") || 
                     lowerName.endsWith(".m4a") || lowerName.endsWith(".opus")) {
                     
-                    val title = name.substringBeforeLast(".")
+                    val meta = getMetadata(file)
                     tracks.add(
                         Track(
                             id = file.uri.toString(),
-                            title = title,
-                            artist = "Unknown Artist",
+                            title = meta.first,
+                            artist = meta.second,
                             filePath = file.uri.toString(),
                             uri = file.uri
                         )

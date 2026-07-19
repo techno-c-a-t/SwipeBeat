@@ -4,7 +4,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
+data class SwipeAction(
+    val track: Track,
+    val isApproved: Boolean,
+    val queueIndex: Int
+)
+
 class SortingViewModel : ViewModel() {
+
+    val swipeHistory = mutableListOf<SwipeAction>()
 
     private val _currentTrack = MutableLiveData<Track?>()
     val currentTrack: LiveData<Track?> = _currentTrack
@@ -91,6 +99,16 @@ class SortingViewModel : ViewModel() {
             positiveTracks.removeAll { negativeKeys.contains(it.getMatchKey()) }
         }
 
+        // Apply blacklist folder filtering
+        val blacklist = settings.blacklistedFolders
+        if (blacklist.isNotEmpty()) {
+            positiveTracks.removeAll { track ->
+                blacklist.any { folder ->
+                    folder.isNotEmpty() && track.filePath.contains(folder, ignoreCase = true)
+                }
+            }
+        }
+
         trackQueue.clear()
         trackQueue.addAll(positiveTracks)
         _totalTracks.value = trackQueue.size
@@ -142,6 +160,8 @@ class SortingViewModel : ViewModel() {
 
     fun onSwipeUp() {
         val current = _currentTrack.value ?: return
+        val index = _currentIndex.value ?: 0
+        swipeHistory.add(SwipeAction(current, isApproved = true, queueIndex = index))
         if (!approvedTracks.contains(current)) {
             approvedTracks.add(current)
         }
@@ -150,10 +170,24 @@ class SortingViewModel : ViewModel() {
 
     fun onSwipeDown() {
         val current = _currentTrack.value ?: return
+        val index = _currentIndex.value ?: 0
+        swipeHistory.add(SwipeAction(current, isApproved = false, queueIndex = index))
         if (!rejectedTracks.contains(current)) {
             rejectedTracks.add(current)
         }
         moveToNextTrack()
+    }
+
+    fun undo() {
+        if (swipeHistory.isEmpty()) return
+        val lastAction = swipeHistory.removeAt(swipeHistory.size - 1)
+        if (lastAction.isApproved) {
+            approvedTracks.remove(lastAction.track)
+        } else {
+            rejectedTracks.remove(lastAction.track)
+        }
+        _currentIndex.value = lastAction.queueIndex
+        _currentTrack.value = lastAction.track
     }
 
     private fun moveToNextTrack() {

@@ -27,5 +27,9 @@ data class SettingsState(
     var speed: Float = 1.0f,
     var playlistName: String = "Sorted_Slidebox",
     var isDetailedSettingsEnabled: Boolean = false,
-    var isAdvancedSourcesModeEnabled: Boolean = false
+    var isAdvancedSourcesModeEnabled: Boolean = false,
+    var blacklistedFolders: MutableList<String> = mutableListOf(
+        "/storage/emulated/0/Music/SystemAlerts",
+        "/storage/emulated/0/WhatsApp/Media/VoiceNotes"
+    )
 )

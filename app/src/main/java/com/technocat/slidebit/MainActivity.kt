@@ -43,10 +43,17 @@ class MainActivity : AppCompatActivity() {
     private val hideHUDRunnable = Runnable {
         binding.layoutTopHUD.animate()
             .alpha(0f)
-            .setDuration(300)
+            .setDuration(200)
             .withEndAction {
-                binding.layoutTopHUD.visibility = View.INVISIBLE
+                binding.layoutTopHUD.visibility = View.GONE
+                binding.tvTopTriggerHint.visibility = View.VISIBLE
+                binding.tvTopTriggerHint.alpha = 0f
+                binding.tvTopTriggerHint.animate()
+                    .alpha(1f)
+                    .setDuration(150)
+                    .start()
             }
+            .start()
     }
 
     private val progressHandler = Handler(Looper.getMainLooper())
@@ -103,6 +110,29 @@ class MainActivity : AppCompatActivity() {
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             )
             scanCustomFolder(uri)
+        }
+    }
+
+    private val selectBlacklistFolderLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri != null) {
+            try {
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            val path = uri.toString()
+            if (!viewModel.settings.blacklistedFolders.contains(path)) {
+                viewModel.settings.blacklistedFolders.add(path)
+                saveSettingsToPrefs()
+                updateBlacklistSettingsList()
+                viewModel.combineSelectedSources()
+                updatePrepScreenStatus()
+            }
         }
     }
 
@@ -165,6 +195,9 @@ class MainActivity : AppCompatActivity() {
             if (loadSessionFromPrefs()) {
                 binding.screenPrep.visibility = View.GONE
                 binding.screenSort.visibility = View.VISIBLE
+                binding.layoutTopHUD.visibility = View.GONE
+                binding.tvTopTriggerHint.visibility = View.VISIBLE
+                binding.tvTopTriggerHint.alpha = 1.0f
             } else {
                 Toast.makeText(this, "Нет сохраненной сессии", Toast.LENGTH_SHORT).show()
             }
@@ -194,6 +227,9 @@ class MainActivity : AppCompatActivity() {
                 playerEngine.setVolume(vol)
                 viewModel.settings.volume = vol
                 saveSettingsToPrefs()
+                if (fromUser) {
+                    showHUD()
+                }
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
@@ -206,18 +242,45 @@ class MainActivity : AppCompatActivity() {
                 playerEngine.setPlaybackSpeed(speedVal)
                 viewModel.settings.speed = speedVal
                 saveSettingsToPrefs()
+                if (fromUser) {
+                    showHUD()
+                }
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        // Mock folder delete buttons on Screen 4
-        binding.btnMockFolderDelete1.setOnClickListener {
-            (binding.btnMockFolderDelete1.parent as? View)?.visibility = View.GONE
+        binding.btnResetHUDControls.setOnClickListener {
+            binding.sbVolume.progress = 80
+            binding.sbSpeed.progress = 5
+            binding.tvSpeedLabel.text = "⚡ 1.0x"
+            playerEngine.setVolume(0.8f)
+            playerEngine.setPlaybackSpeed(1.0f)
+            viewModel.settings.volume = 0.8f
+            viewModel.settings.speed = 1.0f
+            saveSettingsToPrefs()
+            showHUD()
         }
-        binding.btnMockFolderDelete2.setOnClickListener {
-            (binding.btnMockFolderDelete2.parent as? View)?.visibility = View.GONE
+
+        binding.btnBlacklistAddManual.setOnClickListener {
+            val path = binding.etBlacklistPath.text.toString().trim()
+            if (path.isNotEmpty()) {
+                if (!viewModel.settings.blacklistedFolders.contains(path)) {
+                    viewModel.settings.blacklistedFolders.add(path)
+                    saveSettingsToPrefs()
+                    updateBlacklistSettingsList()
+                    viewModel.combineSelectedSources()
+                    updatePrepScreenStatus()
+                }
+                binding.etBlacklistPath.setText("")
+            }
         }
+
+        binding.btnBlacklistPickFolder.setOnClickListener {
+            selectBlacklistFolderLauncher.launch(null)
+        }
+
+        updateBlacklistSettingsList()
 
         binding.sbTrackProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -307,6 +370,11 @@ class MainActivity : AppCompatActivity() {
                         }
                         return true
                     }
+                } else {
+                    if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                        onTrackSwipedSide()
+                        return true
+                    }
                 }
                 return false
             }
@@ -330,31 +398,58 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupLogicControl() {
         binding.btnLogicUnion.setOnClickListener {
-            viewModel.selectedLogicMode = LogicMode.UNION
-            updateLogicControl(binding.btnLogicUnion)
-            viewModel.combineSelectedSources()
-            updatePrepScreenStatus()
+            syncLogicModeUI(LogicMode.UNION)
         }
         binding.btnLogicDup.setOnClickListener {
-            viewModel.selectedLogicMode = LogicMode.DUP
-            updateLogicControl(binding.btnLogicDup)
-            viewModel.combineSelectedSources()
-            updatePrepScreenStatus()
+            syncLogicModeUI(LogicMode.DUP)
         }
         binding.btnLogicUnique.setOnClickListener {
-            viewModel.selectedLogicMode = LogicMode.UNIQUE
-            updateLogicControl(binding.btnLogicUnique)
-            viewModel.combineSelectedSources()
-            updatePrepScreenStatus()
+            syncLogicModeUI(LogicMode.UNIQUE)
         }
         
-        // Initial state selection matches viewModel.selectedLogicMode
-        val selectedBtn = when (viewModel.selectedLogicMode) {
+        binding.sbSettingsLogic.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    val mode = when (progress) {
+                        0 -> LogicMode.UNION
+                        1 -> LogicMode.DUP
+                        else -> LogicMode.UNIQUE
+                    }
+                    syncLogicModeUI(mode)
+                }
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        syncLogicModeUI(viewModel.selectedLogicMode)
+    }
+
+    private fun syncLogicModeUI(mode: LogicMode) {
+        viewModel.selectedLogicMode = mode
+        val selectedBtn = when (mode) {
             LogicMode.UNION -> binding.btnLogicUnion
             LogicMode.DUP -> binding.btnLogicDup
             LogicMode.UNIQUE -> binding.btnLogicUnique
         }
         updateLogicControl(selectedBtn)
+        
+        binding.sbSettingsLogic.progress = when (mode) {
+            LogicMode.UNION -> 0
+            LogicMode.DUP -> 1
+            LogicMode.UNIQUE -> 2
+        }
+        updateSettingsLogicLabel(mode)
+        viewModel.combineSelectedSources()
+        updatePrepScreenStatus()
+    }
+
+    private fun updateSettingsLogicLabel(mode: LogicMode) {
+        binding.tvSettingsLogicLabel.text = when (mode) {
+            LogicMode.UNION -> "Логика сессии: Объединить"
+            LogicMode.DUP -> "Логика сессии: Дубликаты"
+            LogicMode.UNIQUE -> "Логика сессии: Уникальные"
+        }
     }
 
     private fun updateLogicControl(selected: TextView) {
@@ -676,6 +771,9 @@ class MainActivity : AppCompatActivity() {
     private fun startSortingSession(tracks: List<Track>) {
         binding.screenPrep.visibility = View.GONE
         binding.screenSort.visibility = View.VISIBLE
+        binding.layoutTopHUD.visibility = View.GONE
+        binding.tvTopTriggerHint.visibility = View.VISIBLE
+        binding.tvTopTriggerHint.alpha = 1.0f
         viewModel.initSession(tracks)
     }
 
@@ -742,13 +840,23 @@ class MainActivity : AppCompatActivity() {
 
     private fun showHUD() {
         hudHandler.removeCallbacks(hideHUDRunnable)
-        binding.layoutTopHUD.visibility = View.VISIBLE
-        binding.layoutTopHUD.alpha = 0f
-        binding.layoutTopHUD.animate()
-            .alpha(1f)
-            .setDuration(200)
-            .start()
-        hudHandler.postDelayed(hideHUDRunnable, 3000)
+        if (binding.layoutTopHUD.visibility != View.VISIBLE) {
+            binding.layoutTopHUD.visibility = View.VISIBLE
+            binding.layoutTopHUD.alpha = 0f
+            binding.layoutTopHUD.animate()
+                .alpha(1f)
+                .setDuration(200)
+                .start()
+                
+            binding.tvTopTriggerHint.animate()
+                .alpha(0f)
+                .setDuration(150)
+                .withEndAction {
+                    binding.tvTopTriggerHint.visibility = View.GONE
+                }
+                .start()
+        }
+        hudHandler.postDelayed(hideHUDRunnable, 4000)
     }
 
     private fun onTrackSwipedUp() {
@@ -775,6 +883,29 @@ class MainActivity : AppCompatActivity() {
             .withEndAction {
                 viewModel.onSwipeDown()
                 checkAutosave()
+            }
+            .start()
+    }
+
+    private fun onTrackSwipedSide() {
+        if (viewModel.swipeHistory.isEmpty()) {
+            Toast.makeText(this, "Нет действий для отмены", Toast.LENGTH_SHORT).show()
+            return
+        }
+        vibrate("single")
+        binding.cardTrack.animate()
+            .translationX(400f)
+            .alpha(0f)
+            .setDuration(120)
+            .withEndAction {
+                viewModel.undo()
+                checkAutosave()
+                binding.cardTrack.translationX = 0f
+                binding.cardTrack.alpha = 0f
+                binding.cardTrack.animate()
+                    .alpha(1f)
+                    .setDuration(150)
+                    .start()
             }
             .start()
     }
@@ -1021,10 +1152,21 @@ class MainActivity : AppCompatActivity() {
         for (t in viewModel.rejectedTracks) {
             rejectedArray.put(t.toJson())
         }
+
+        val historyArray = org.json.JSONArray()
+        for (a in viewModel.swipeHistory) {
+            val actJson = org.json.JSONObject().apply {
+                put("track", a.track.toJson())
+                put("isApproved", a.isApproved)
+                put("queueIndex", a.queueIndex)
+            }
+            historyArray.put(actJson)
+        }
         
         editor.putString("SessionQueue", queueArray.toString())
         editor.putString("SessionApproved", approvedArray.toString())
         editor.putString("SessionRejected", rejectedArray.toString())
+        editor.putString("SessionHistory", historyArray.toString())
         editor.putInt("SessionIndex", viewModel.currentIndex.value ?: 0)
         editor.putString("SessionSourceStatus", binding.tvSourceStatus.text.toString())
         editor.apply()
@@ -1035,6 +1177,7 @@ class MainActivity : AppCompatActivity() {
         val queueStr = prefs.getString("SessionQueue", null) ?: return false
         val approvedStr = prefs.getString("SessionApproved", "[]") ?: "[]"
         val rejectedStr = prefs.getString("SessionRejected", "[]") ?: "[]"
+        val historyStr = prefs.getString("SessionHistory", "[]") ?: "[]"
         val index = prefs.getInt("SessionIndex", 0)
         val statusText = prefs.getString("SessionSourceStatus", "Не выбрано") ?: "Не выбрано"
 
@@ -1042,6 +1185,7 @@ class MainActivity : AppCompatActivity() {
             val queueJson = org.json.JSONArray(queueStr)
             val approvedJson = org.json.JSONArray(approvedStr)
             val rejectedJson = org.json.JSONArray(rejectedStr)
+            val historyJson = org.json.JSONArray(historyStr)
 
             val queue = mutableListOf<Track>()
             for (i in 0 until queueJson.length()) {
@@ -1056,9 +1200,20 @@ class MainActivity : AppCompatActivity() {
                 rejected.add(Track.fromJson(rejectedJson.getJSONObject(i)))
             }
 
+            val history = mutableListOf<SwipeAction>()
+            for (i in 0 until historyJson.length()) {
+                val obj = historyJson.getJSONObject(i)
+                val track = Track.fromJson(obj.getJSONObject("track"))
+                val isApproved = obj.getBoolean("isApproved")
+                val queueIndex = obj.getInt("queueIndex")
+                history.add(SwipeAction(track, isApproved, queueIndex))
+            }
+
             if (queue.isEmpty()) return false
 
             viewModel.resumeSession(queue, approved, rejected, index)
+            viewModel.swipeHistory.clear()
+            viewModel.swipeHistory.addAll(history)
             binding.tvSourceStatus.text = statusText
 
             return true
@@ -1258,6 +1413,48 @@ class MainActivity : AppCompatActivity() {
         binding.rbThemeAmoled.setTextColor(if (themeName == "amoled") textColor else subTextColor)
     }
 
+    private fun updateBlacklistSettingsList() {
+        binding.layoutBlacklistPaths.removeAllViews()
+        val inflater = android.view.LayoutInflater.from(this)
+        for (path in viewModel.settings.blacklistedFolders) {
+            val row = android.widget.LinearLayout(this).apply {
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                orientation = android.widget.LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setPadding(0, 8, 0, 8)
+            }
+
+            val tvPath = android.widget.TextView(this).apply {
+                layoutParams = android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                text = path
+                setTextColor(0xFFE4E4E7.toInt())
+                textSize = 12f
+                ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
+                isSingleLine = true
+            }
+
+            val btnDelete = android.widget.TextView(this).apply {
+                text = "❌"
+                textSize = 12f
+                setPadding(16, 8, 16, 8)
+                setOnClickListener {
+                    viewModel.settings.blacklistedFolders.remove(path)
+                    saveSettingsToPrefs()
+                    updateBlacklistSettingsList()
+                    viewModel.combineSelectedSources()
+                    updatePrepScreenStatus()
+                }
+            }
+
+            row.addView(tvPath)
+            row.addView(btnDelete)
+            binding.layoutBlacklistPaths.addView(row)
+        }
+    }
+
     private fun checkPermissions(): Boolean {
         val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             Manifest.permission.READ_MEDIA_AUDIO
@@ -1325,6 +1522,12 @@ class MainActivity : AppCompatActivity() {
             putString("SettingPlaylistName", viewModel.settings.playlistName)
             putBoolean("SettingDetailedSettings", viewModel.settings.isDetailedSettingsEnabled)
             putBoolean("SettingAdvancedSourcesMode", viewModel.settings.isAdvancedSourcesModeEnabled)
+            
+            val blacklistArray = org.json.JSONArray()
+            for (f in viewModel.settings.blacklistedFolders) {
+                blacklistArray.put(f)
+            }
+            putString("SettingBlacklistedFolders", blacklistArray.toString())
             apply()
         }
     }
@@ -1343,6 +1546,19 @@ class MainActivity : AppCompatActivity() {
         viewModel.settings.playlistName = prefs.getString("SettingPlaylistName", "Sorted_Slidebox") ?: "Sorted_Slidebox"
         viewModel.settings.isDetailedSettingsEnabled = prefs.getBoolean("SettingDetailedSettings", false)
         viewModel.settings.isAdvancedSourcesModeEnabled = prefs.getBoolean("SettingAdvancedSourcesMode", false)
+        
+        val blacklistStr = prefs.getString("SettingBlacklistedFolders", null)
+        if (blacklistStr != null) {
+            try {
+                val array = org.json.JSONArray(blacklistStr)
+                viewModel.settings.blacklistedFolders.clear()
+                for (i in 0 until array.length()) {
+                    viewModel.settings.blacklistedFolders.add(array.getString(i))
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
         updateOutputPlaylistLabel()
     }
 

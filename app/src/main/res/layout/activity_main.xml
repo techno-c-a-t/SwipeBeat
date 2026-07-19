@@ -236,111 +236,133 @@
         android:padding="16dp"
         android:visibility="gone">
 
-        <!-- Top Tapping Zone to Trigger HUD -->
+        <!-- Top Header Panel Container -->
         <FrameLayout
             android:id="@+id/viewTopTrigger"
             android:layout_width="match_parent"
-            android:layout_height="64dp"
+            android:layout_height="140dp"
             android:background="#0DFFFFFF"
             app:layout_constraintTop_toTopOf="parent">
 
+            <!-- Hint text visible when collapsed -->
             <TextView
+                android:id="@+id/tvTopTriggerHint"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="Нажмите здесь для панели управления (громкость / скорость)"
+                android:text="Нажмите для управления звуком и скоростью"
                 android:textColor="#71717A"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </FrameLayout>
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="visible" />
 
-        <!-- Animated Top HUD (Hidden by default) -->
-        <LinearLayout
-            android:id="@+id/layoutTopHUD"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="invisible"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <SeekBar
-                android:id="@+id/hudSeekBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100"
-                android:progress="0"
-                android:thumb="@null"
-                android:progressTint="#71717A"
-                android:progressBackgroundTint="#27272A" />
-
-            <TextView
-                android:id="@+id/tvCounter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 / 0"
-                android:textColor="#71717A"
-                android:textSize="12sp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="2dp" />
-
+            <!-- The controls, hidden by default -->
             <LinearLayout
+                android:id="@+id/layoutTopHUD"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:layout_marginTop="4dp">
+                android:padding="12dp"
+                android:visibility="gone">
 
-                <!-- Volume Control (Separate Line) -->
-                <LinearLayout
+                <SeekBar
+                    android:id="@+id/hudSeekBar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp">
-                    <TextView
-                        android:layout_width="40dp"
-                        android:layout_height="wrap_content"
-                        android:text="🔊"
-                        android:textSize="14sp"
-                        android:textColor="#71717A" />
-                    <SeekBar
-                        android:id="@+id/sbVolume"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:max="100"
-                        android:progress="100"
-                        android:progressTint="#71717A"
-                        android:thumbTint="#A1A1AA" />
-                </LinearLayout>
+                    android:max="100"
+                    android:progress="0"
+                    android:thumb="@null"
+                    android:progressTint="#71717A"
+                    android:progressBackgroundTint="#27272A" />
 
-                <!-- Speed Control (Separate Line) -->
-                <LinearLayout
+                <!-- Counter and Reset button -->
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp">
+                    android:layout_marginTop="2dp">
+                    
                     <TextView
-                        android:id="@+id/tvSpeedLabel"
-                        android:layout_width="60dp"
+                        android:id="@+id/tvCounter"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="⚡ 1.0x"
+                        android:text="0 / 0"
+                        android:textColor="#71717A"
                         android:textSize="12sp"
-                        android:textColor="#71717A" />
-                    <SeekBar
-                        android:id="@+id/sbSpeed"
+                        android:layout_centerInParent="true" />
+                        
+                    <TextView
+                        android:id="@+id/btnResetHUDControls"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Сбросить"
+                        android:textColor="#EF4444"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:layout_alignParentEnd="true"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp" />
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="4dp">
+
+                    <!-- Volume Control (Separate Line) -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:max="45"
-                        android:progress="5"
-                        android:progressTint="#71717A"
-                        android:thumbTint="#A1A1AA" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingTop="2dp"
+                        android:paddingBottom="2dp">
+                        <TextView
+                            android:layout_width="40dp"
+                            android:layout_height="wrap_content"
+                            android:text="🔊"
+                            android:textSize="13sp"
+                            android:textColor="#71717A" />
+                        <SeekBar
+                            android:id="@+id/sbVolume"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="100"
+                            android:progress="100"
+                            android:progressTint="#71717A"
+                            android:thumbTint="#A1A1AA" />
+                    </LinearLayout>
+
+                    <!-- Speed Control (Separate Line) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingTop="2dp"
+                        android:paddingBottom="2dp">
+                        <TextView
+                            android:id="@+id/tvSpeedLabel"
+                            android:layout_width="60dp"
+                            android:layout_height="wrap_content"
+                            android:text="⚡ 1.0x"
+                            android:textSize="11sp"
+                            android:textColor="#71717A" />
+                        <SeekBar
+                            android:id="@+id/sbSpeed"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="45"
+                            android:progress="5"
+                            android:progressTint="#71717A"
+                            android:thumbTint="#A1A1AA" />
+                    </LinearLayout>
+
                 </LinearLayout>
 
             </LinearLayout>
 
-        </LinearLayout>
+        </FrameLayout>
 
         <!-- Exit and History actions -->
         <TextView
@@ -392,11 +414,11 @@
 
                     <!-- Cover image -->
                     <FrameLayout
-                        android:id="@+id/albumArtContainer"
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="3.2"
-                        android:background="@drawable/bg_album_gradient">
+                         android:id="@+id/albumArtContainer"
+                         android:layout_width="match_parent"
+                         android:layout_height="0dp"
+                         android:layout_weight="1"
+                         android:background="@drawable/bg_album_gradient">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -501,10 +523,12 @@
                     <!-- Text labels -->
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="20dp"
+                        android:paddingStart="20dp"
+                        android:paddingEnd="20dp"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="12dp"
                         android:gravity="center_vertical">
 
                         <TextView
@@ -1037,6 +1061,132 @@
                                     android:layout_height="wrap_content"
                                     android:layout_alignParentEnd="true" />
                             </RelativeLayout>
+
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Session Logic Configuration Card -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="12dp"
+                        app:cardBackgroundColor="#18181B"
+                        android:layout_marginBottom="24dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <TextView
+                                android:id="@+id/tvSettingsLogicLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Логика сессии: Объединить"
+                                android:textColor="#F4F4F5"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <SeekBar
+                                android:id="@+id/sbSettingsLogic"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
+                                android:max="2"
+                                android:progress="0"
+                                android:progressTint="#71717A"
+                                android:thumbTint="#A1A1AA" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="0: Объединить | 1: Дубликаты | 2: Уникальные"
+                                android:textColor="#71717A"
+                                android:textSize="11sp" />
+
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Blacklist Configuration Card -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="12dp"
+                        app:cardBackgroundColor="#18181B"
+                        android:layout_marginBottom="24dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Черный список папок"
+                                android:textColor="#F4F4F5"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Треки из этих папок будут автоматически скрыты из очереди сортировки."
+                                android:textColor="#71717A"
+                                android:textSize="11sp" />
+
+                            <LinearLayout
+                                android:id="@+id/layoutBlacklistPaths"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_marginTop="8dp" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:layout_marginTop="12dp"
+                                android:gravity="center_vertical">
+
+                                <EditText
+                                    android:id="@+id/etBlacklistPath"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:hint="Ввести путь вручную..."
+                                    android:textColor="#F4F4F5"
+                                    android:textColorHint="#71717A"
+                                    android:textSize="13sp"
+                                    android:backgroundTint="#27272A"
+                                    android:singleLine="true" />
+
+                                <TextView
+                                    android:id="@+id/btnBlacklistAddManual"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="➕ Добавить"
+                                    android:textColor="#3B82F6"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold"
+                                    android:padding="8dp" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/btnBlacklistPickFolder"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:background="#27272A"
+                                android:text="📁 Выбрать папку на устройстве..."
+                                android:textColor="#A1A1AA"
+                                android:textSize="13sp"
+                                android:gravity="center"
+                                android:padding="10dp" />
 
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
