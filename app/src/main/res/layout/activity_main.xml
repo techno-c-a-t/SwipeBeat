@@ -28,29 +28,19 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/cardSelectSource"
-            app:layout_constraintVertical_chainStyle="packed" />
-
-        <TextView
-            android:id="@+id/btnSettings"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/bg_circle_translucent"
-            android:text="⚙️"
-            android:textSize="18sp"
-            android:gravity="center"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:layout_marginTop="24dp" />
 
         <!-- Block 1: Choose Sources -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardSelectSource"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
             app:cardCornerRadius="16dp"
             app:cardBackgroundColor="#18181B"
-            app:layout_constraintTop_toBottomOf="@id/btnSettings">
+            app:layout_constraintTop_toBottomOf="@id/tvAppName"
+            app:layout_constraintBottom_toTopOf="@id/btnSettingsPrep"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintVertical_bias="0.9">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -79,77 +69,20 @@
 
         </androidx.cardview.widget.CardView>
 
-        <!-- Block 2: Session Logic -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/cardSessionLogic"
+        <!-- Block 2: Settings Button -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnSettingsPrep"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="56dp"
             android:layout_marginTop="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardBackgroundColor="#18181B"
-            app:layout_constraintTop_toBottomOf="@id/cardSelectSource">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Логика сессии"
-                    android:textColor="#71717A"
-                    android:textSize="12sp"
-                    android:layout_marginBottom="12dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:orientation="horizontal"
-                    android:background="#27272A"
-                    android:padding="3dp"
-                    android:weightSum="3">
-
-                    <TextView
-                        android:id="@+id/btnLogicUnion"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:text="Объединить"
-                        android:textColor="#F4F4F5"
-                        android:gravity="center"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:background="@drawable/bg_tab_selected" />
-
-                    <TextView
-                        android:id="@+id/btnLogicDup"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:text="Дубликаты"
-                        android:textColor="#71717A"
-                        android:gravity="center"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/btnLogicUnique"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:text="Уникальные"
-                        android:textColor="#71717A"
-                        android:gravity="center"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </androidx.cardview.widget.CardView>
+            android:background="@drawable/bg_button_secondary"
+            android:text="⚙️ Настройки"
+            android:textColor="#F4F4F5"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            app:layout_constraintTop_toBottomOf="@id/cardSelectSource"
+            app:layout_constraintBottom_toTopOf="@id/cardOutputPlaylist" />
 
         <!-- Block 3: Output Playlist -->
         <androidx.cardview.widget.CardView
@@ -159,7 +92,8 @@
             android:layout_marginTop="16dp"
             app:cardCornerRadius="16dp"
             app:cardBackgroundColor="#18181B"
-            app:layout_constraintTop_toBottomOf="@id/cardSessionLogic">
+            app:layout_constraintTop_toBottomOf="@id/btnSettingsPrep"
+            app:layout_constraintBottom_toTopOf="@id/cardScanProgress">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -188,6 +122,83 @@
 
         </androidx.cardview.widget.CardView>
 
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardScanProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="#27272A"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/cardOutputPlaylist"
+            app:layout_constraintBottom_toTopOf="@id/tvLogs">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tvScanStatusTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Сканирование источников..."
+                    android:textColor="#F4F4F5"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvScanDetails"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Сканируется: папка\nНайдено файлов: 0"
+                    android:textColor="#A1A1AA"
+                    android:textSize="12sp"
+                    android:layout_marginTop="6dp" />
+
+                <ProgressBar
+                    android:id="@+id/pbScanProgress"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="4dp"
+                    android:layout_marginTop="12dp"
+                    android:indeterminate="true" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="12dp"
+                    android:gravity="end">
+
+                    <TextView
+                        android:id="@+id/btnScanStop"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="СТОП"
+                        android:textColor="#E4E4E7"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:padding="8dp"
+                        android:layout_marginEnd="16dp" />
+
+                    <TextView
+                        android:id="@+id/btnScanCancel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ОТМЕНА"
+                        android:textColor="#EF4444"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:padding="8dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
         <TextView
             android:id="@+id/tvLogs"
             android:layout_width="match_parent"
@@ -197,32 +208,59 @@
             android:textColor="#71717A"
             android:textSize="12sp"
             android:gravity="center"
-            app:layout_constraintTop_toBottomOf="@id/cardOutputPlaylist" />
+            app:layout_constraintTop_toBottomOf="@id/cardScanProgress"
+            app:layout_constraintBottom_toTopOf="@id/layoutResumeArea" />
 
         <!-- Bottom Action Buttons -->
+        <LinearLayout
+            android:id="@+id/layoutResumeArea"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintTop_toBottomOf="@id/tvLogs"
+            app:layout_constraintBottom_toTopOf="@id/btnStartSort"
+            android:visibility="gone">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnResumeSort"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="3"
+                android:background="@drawable/bg_button_primary"
+                android:text="Продолжить"
+                android:textAllCaps="false"
+                android:textColor="#09090B"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginEnd="8dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnSavePrevSession"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="2"
+                android:background="@drawable/bg_button_secondary"
+                android:text="Сохранить"
+                android:textAllCaps="false"
+                android:textColor="#F4F4F5"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnStartSort"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:background="@drawable/bg_button_primary"
+            android:background="@drawable/bg_button_secondary"
             android:text="Начать новую сортировку"
             android:textAllCaps="false"
-            android:textColor="#09090B"
+            android:textColor="#F4F4F5"
             android:textSize="15sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@id/btnResumeSort"
-            android:layout_marginBottom="8dp" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnResumeSort"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_button_secondary"
-            android:text="Продолжить прошлую сессию"
-            android:textAllCaps="false"
-            android:textColor="#F4F4F5"
-            android:textSize="14sp"
-            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/layoutResumeArea"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginBottom="8dp" />
 
@@ -237,33 +275,41 @@
         android:visibility="gone">
 
         <!-- Top Header Panel Container -->
-        <FrameLayout
+        <androidx.cardview.widget.CardView
             android:id="@+id/viewTopTrigger"
             android:layout_width="match_parent"
             android:layout_height="140dp"
-            android:background="#0DFFFFFF"
+            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="#27272A"
+            app:cardElevation="4dp"
             app:layout_constraintTop_toTopOf="parent">
 
-            <!-- Hint text visible when collapsed -->
-            <TextView
-                android:id="@+id/tvTopTriggerHint"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Нажмите для управления звуком и скоростью"
-                android:textColor="#71717A"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:visibility="visible" />
-
-            <!-- The controls, hidden by default -->
-            <LinearLayout
-                android:id="@+id/layoutTopHUD"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="12dp"
-                android:visibility="gone">
+                android:layout_height="match_parent">
+
+                <!-- Hint text visible when collapsed -->
+                <TextView
+                    android:id="@+id/tvTopTriggerHint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Нажмите для управления звуком и скоростью"
+                    android:textColor="#71717A"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:visibility="visible" />
+
+                <!-- The controls, hidden by default -->
+                <LinearLayout
+                    android:id="@+id/layoutTopHUD"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:padding="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone">
 
                 <SeekBar
                     android:id="@+id/hudSeekBar"
@@ -362,7 +408,9 @@
 
             </LinearLayout>
 
-        </FrameLayout>
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
 
         <!-- Exit and History actions -->
         <TextView
@@ -751,11 +799,11 @@
 
                 </androidx.cardview.widget.CardView>
 
-                <!-- Раздел 2: Черный список папок -->
+                <!-- Раздел 3: Интерфейс -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Черный список папок"
+                    android:text="Интерфейс"
                     android:textColor="#71717A"
                     android:textSize="12sp"
                     android:textStyle="bold"
@@ -774,118 +822,11 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="8dp">
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="/storage/emulated/0/Music/SystemAlerts"
-                                android:textColor="#E4E4E7"
-                                android:textSize="13sp" />
-                            <TextView
-                                android:id="@+id/btnMockFolderDelete1"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="✕"
-                                android:textColor="#EF4444"
-                                android:padding="8dp"/>
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="/storage/emulated/0/WhatsApp/Media/VoiceNotes"
-                                android:textColor="#E4E4E7"
-                                android:textSize="13sp" />
-                            <TextView
-                                android:id="@+id/btnMockFolderDelete2"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="✕"
-                                android:textColor="#EF4444"
-                                android:padding="8dp"/>
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                </androidx.cardview.widget.CardView>
-
-                <!-- Раздел 3: Интерфейс и жесты -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Интерфейс и жесты"
-                    android:textColor="#71717A"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:textAllCaps="true"
-                    android:layout_marginBottom="8dp" />
-
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="12dp"
-                    app:cardBackgroundColor="#18181B"
-                    android:layout_marginBottom="24dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <!-- Vibration strength -->
-                        <TextView
-                            android:id="@+id/tvVibeLabel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Сила вибрации: 80 ms"
-                            android:textColor="#F4F4F5"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-                        <SeekBar
-                            android:id="@+id/sbVibrationStrength"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:max="200"
-                            android:progress="80"
-                            android:layout_marginTop="8dp" />
-
-                        <!-- Card scale -->
-                        <TextView
-                            android:id="@+id/tvScaleLabel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Масштаб карточки: 100%"
-                            android:textColor="#F4F4F5"
-                            android:textSize="14sp"
-                            android:textStyle="bold"
-                            android:layout_marginTop="16dp" />
-                        <SeekBar
-                            android:id="@+id/sbCardScale"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:max="40"
-                            android:progress="20"
-                            android:layout_marginTop="8dp" />
 
                         <!-- Autoplay Switch -->
                         <RelativeLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp">
+                            android:layout_height="wrap_content">
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -900,24 +841,6 @@
                                 android:layout_alignParentEnd="true"
                                 android:checked="true" />
                         </RelativeLayout>
-
-                        <!-- Autosave Interval -->
-                        <TextView
-                            android:id="@+id/tvAutosaveLabel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Автосохранение сессии: каждые 5 треков"
-                            android:textColor="#F4F4F5"
-                            android:textSize="14sp"
-                            android:textStyle="bold"
-                            android:layout_marginTop="16dp" />
-                        <SeekBar
-                            android:id="@+id/sbAutosaveInterval"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:max="20"
-                            android:progress="5"
-                            android:layout_marginTop="8dp" />
 
                         <!-- Theme selector -->
                         <TextView
@@ -1032,6 +955,7 @@
                         android:textAllCaps="true"
                         android:layout_marginBottom="8dp" />
 
+                    <!-- Sources advanced card -->
                     <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -1061,6 +985,141 @@
                                     android:layout_height="wrap_content"
                                     android:layout_alignParentEnd="true" />
                             </RelativeLayout>
+
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="16dp">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Любой текст как плейлист"
+                                    android:textColor="#F4F4F5"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+                                <androidx.appcompat.widget.SwitchCompat
+                                    android:id="@+id/switchParseAllTextPlaylists"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true" />
+                            </RelativeLayout>
+
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Advanced Interface settings -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="12dp"
+                        app:cardBackgroundColor="#18181B"
+                        android:layout_marginBottom="24dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <!-- Vibration strength -->
+                            <TextView
+                                android:id="@+id/tvVibeLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Сила вибрации: 80 ms"
+                                android:textColor="#F4F4F5"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+                            <SeekBar
+                                android:id="@+id/sbVibrationStrength"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:max="200"
+                                android:progress="80"
+                                android:layout_marginTop="8dp" />
+
+                            <!-- Card scale -->
+                            <TextView
+                                android:id="@+id/tvScaleLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Масштаб карточки: 100%"
+                                android:textColor="#F4F4F5"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:layout_marginTop="16dp" />
+                            <SeekBar
+                                android:id="@+id/sbCardScale"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:max="40"
+                                android:progress="20"
+                                android:layout_marginTop="8dp" />
+
+                            <!-- Autosave Interval -->
+                            <TextView
+                                android:id="@+id/tvAutosaveLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Автосохранение сессии: каждые 5 треков"
+                                android:textColor="#F4F4F5"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:layout_marginTop="16dp" />
+                            <SeekBar
+                                android:id="@+id/sbAutosaveInterval"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:max="20"
+                                android:progress="5"
+                                android:layout_marginTop="8dp" />
+
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Metadata Cache configuration card -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="12dp"
+                        app:cardBackgroundColor="#18181B"
+                        android:layout_marginBottom="24dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Кэшировать метаданные"
+                                    android:textColor="#F4F4F5"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+                                <androidx.appcompat.widget.SwitchCompat
+                                    android:id="@+id/switchMetadataCache"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    android:checked="true" />
+                            </RelativeLayout>
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnClearMetadataCache"
+                                android:layout_width="match_parent"
+                                android:layout_height="40dp"
+                                android:layout_marginTop="16dp"
+                                android:background="#27272A"
+                                android:text="Очистить кэш метаданных"
+                                android:textAllCaps="false"
+                                android:textColor="#EF4444"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
 
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
@@ -1198,5 +1257,12 @@
         </ScrollView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- ================= ТУТОРИАЛ ОВЕРЛЕЙ ================= -->
+    <com.technocat.slidebit.TutorialOverlayView
+        android:id="@+id/tutorialOverlayView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 
 </FrameLayout>

@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Music Sorter Mockup</title>
+    <style>
+        :root {
+            --bg-color: #09090b;
+            --card-bg: #18181b;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --text-main: #f4f4f5;
+            --text-muted: #71717a;
+            --border-color: #27272a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background-color: #202023;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-main);
+        }
+
+        /* Симулятор экрана смартфона */
+        .phone-wrapper {
+            width: 360px;
+            height: 740px;
+            background-color: var(--bg-color);
+            border-radius: 36px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 8px solid #2d2d30;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Общие стили экранов */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-color);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 5;
+        }
+
+        .screen.hidden {
+            transform: translateX(100%);
+        }
+
+        /* Заголовки */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 20px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: var(--card-bg);
+        }
+
+        /* --- ЭКРАН 1: ПОДГОТОВКА --- */
+        .prep-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-grow: 1;
+        }
+
+        .card-button {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .card-button:active {
+            background-color: #27272a;
+        }
+
+        .card-button-title {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .card-button-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* Менеджер источников (Оверлей) */
+        .modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: 24px 24px 0 0;
+            padding: 20px 16px;
+            max-height: 80%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .source-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        /* Логика объединения */
+        .logic-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .logic-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .logic-btn.active {
+            background-color: #27272a;
+            color: var(--text-main);
+        }
+
+        .start-btn {
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            border: none;
+            border-radius: 16px;
+            padding: 16px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .resume-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 16px;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        /* --- ЭКРАН 2: СОРТИРОВКА --- */
+        #screen-sort {
+            padding: 16px 12px;
+            justify-content: space-between;
+        }
+
+        /* Скрытые элементы, активируемые тапом */
+        .tap-trigger-zone {
+            height: 30px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .hud-overlay {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .hud-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .card-container {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 16px 0;
+        }
+
+        /* Карточка трека */
+        .track-card {
+            width: 100%;
+            height: 420px;
+            background-color: var(--card-bg);
+            border-radius: 28px;
+            border: 1px solid var(--border-color);
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            cursor: grab;
+            touch-action: none;
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .track-card:active {
+            cursor: grabbing;
+        }
+
+        .album-art {
+            width: 100%;
+            height: 65%;
+            background: linear-gradient(135deg, #3f51b5, #009688);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .album-art-placeholder {
+            font-size: 64px;
+            opacity: 0.3;
+        }
+
+        /* Индикатор паузы поверх обложки */
+        .pause-indicator {
+            position: absolute;
+            font-size: 48px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 16px;
+            border-radius: 50%;
+            display: none;
+        }
+
+        .track-meta {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .track-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .track-artist {
+            font-size: 14px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Наложение цвета при свайпе */
+        .swipe-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 900;
+            opacity: 0;
+            transition: opacity 0.1s ease;
+            pointer-events: none;
+        }
+
+        .swipe-overlay.approve {
+            background-color: rgba(34, 197, 94, 0.8);
+            color: white;
+        }
+
+        .swipe-overlay.reject {
+            background-color: rgba(239, 68, 68, 0.8);
+            color: white;
+        }
+
+        /* Инфо по холду */
+        .info-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            gap: 8px;
+        }
+
+        .info-overlay-title {
+            color: var(--text-main);
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        /* Плеер утилиты */
+        .player-bar {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+        }
+
+        .tempo-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-grow: 1;
+            max-width: 70%;
+        }
+
+        .tempo-control span {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--text-muted);
+            min-width: 32px;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--border-color);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--text-main);
+            cursor: pointer;
+        }
+
+        /* --- ЭКРАН 3: СПИСКИ ИСТОРИИ (BOTTOM SHEET) --- */
+        .bottom-sheet {
+            position: absolute;
+            left: 0;
+            bottom: -100%;
+            width: 100%;
+            height: 80%;
+            background-color: var(--card-bg);
+            border-radius: 24px 24px 0 0;
+            z-index: 100;
+            transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bottom-sheet.active {
+            bottom: 0;
+        }
+
+        .sheet-drag-handle {
+            width: 40px;
+            height: 4px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            margin: 12px auto;
+            cursor: pointer;
+        }
+
+        .sheet-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sheet-tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .sheet-tab-btn.active {
+            color: var(--text-main);
+        }
+
+        .sheet-tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            width: 60%;
+            height: 3px;
+            background-color: var(--text-main);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .list-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: none;
+        }
+
+        .list-container.active {
+            display: block;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(255, 255, 255, 0.02);
+            padding: 10px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+        }
+
+        .history-item-meta {
+            max-width: 65%;
+        }
+
+        .history-item-title {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item-artist {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .history-btn {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- ЭКРАН 4: НАСТРОЙКИ --- */
+        .settings-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .settings-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .settings-section h3 {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card-bg);
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .setting-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            max-width: 75%;
+        }
+
+        .setting-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .setting-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Тумблер (Switch) */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: .2s;
+            border-radius: 24px;
+        }
+
+        .switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .2s;
+            border-radius: 50%;
+        }
+
+        input:checked+.switch-slider {
+            background-color: var(--accent-green);
+        }
+
+        input:checked+.switch-slider:before {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="phone-wrapper">
+
+        <!-- ================= ЭКРАН 1: ПОДГОТОВКА ================= -->
+        <div id="screen-prep" class="screen">
+            <div class="header">
+                <h1>Подготовка</h1>
+                <button class="btn-icon" onclick="openScreen('screen-settings')">⚙️</button>
+            </div>
+
+            <div class="prep-content">
+                <div class="card-button" onclick="toggleModal(true)">
+                    <p class="card-button-title">Что сортируем?</p>
+                    <p class="card-button-value" id="val-sources">2 папки, 1 плейлист</p>
+                </div>
+
+                <div class="logic-selector">
+                    <button class="logic-btn active" onclick="setLogic(this)">Объединить</button>
+                    <button class="logic-btn" onclick="setLogic(this)">Дубликаты</button>
+                    <button class="logic-btn" onclick="setLogic(this)">Разность</button>
+                </div>
+
+                <div class="card-button">
+                    <p class="card-button-title">Плейлист на выходе</p>
+                    <p class="card-button-value">Sorted_July17.m3u8</p>
+                </div>
+
+                <button class="start-btn" onclick="openScreen('screen-sort')">Начать сортировку</button>
+                <button class="resume-btn" onclick="openScreen('screen-sort')">Продолжить (осталось 42)</button>
+            </div>
+        </div>
+
+        <!-- ================= ЭКРАН 2: СОРТИРОВКА ================= -->
+        <div id="screen-sort" class="screen hidden">
+            <!-- Триггерная зона для HUD -->
+            <div class="tap-trigger-zone" onclick="toggleHUD()">
+                <div id="hud-top" class="hud-overlay">
+                    <span style="font-size: 14px; font-weight: bold; cursor: pointer;" onclick="exitSorting(event)">✕
+                        Назад</span>
+                    <span id="track-counter" style="font-size: 13px; color: var(--text-muted);">1 / 5</span>
+                    <span class="btn-icon" style="width: 28px; height: 28px; font-size: 14px;"
+                        onclick="toggleBottomSheet(true, event)">🕒</span>
+                </div>
+            </div>
+
+            <!-- Контейнер свайпов -->
+            <div class="card-container">
+                <div id="main-card" class="track-card">
+                    <!-- Заглушка обложки -->
+                    <div class="album-art" id="card-art">
+                        <div class="album-art-placeholder">🎵</div>
+                        <div class="pause-indicator" id="pause-icon">⏸</div>
+                        <div class="swipe-overlay approve" id="overlay-approve">ОДОБРИТЬ</div>
+                        <div class="swipe-overlay reject" id="overlay-reject">ПРОПУСТИТЬ</div>
+                    </div>
+                    <!-- Текст трека -->
+                    <div class="track-meta">
+                        <p class="track-title" id="card-title">Песня 1</p>
+                        <p class="track-artist" id="card-artist">Артист 1</p>
+                    </div>
+                    <!-- Оверлей информации по холду -->
+                    <div class="info-overlay" id="card-info">
+                        <p class="info-overlay-title">Информация о файле</p>
+                        <p>Путь: /sdcard/Music/Artist 1 - Track 1.mp3</p>
+                        <p>Формат: MP3, Stereo</p>
+                        <p>Битрейт: 320 kbps (CBR)</p>
+                        <p>Частота: 44.1 kHz</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Плеер-бар -->
+            <div class="player-bar">
+                <div class="tempo-control">
+                    <span>1.0x</span>
+                    <input type="range" class="slider" min="0.5" max="3" step="0.1" value="1.0"
+                        oninput="updateTempo(this)">
+                </div>
+                <button class="btn-icon" style="font-size: 14px;" onclick="toggleBottomSheet(true)">🕒</button>
+            </div>
+        </div>
+
+        <!-- ================= ЭКРАН 3: ИСТОРИЯ (BOTTOM SHEET) ================= -->
+        <div id="bottom-sheet-history" class="bottom-sheet">
+            <div class="sheet-drag-handle" onclick="toggleBottomSheet(false)"></div>
+            <div class="sheet-tabs">
+                <button class="sheet-tab-btn active" id="tab-approved" onclick="switchTab('approved')">Одобрено
+                    (0)</button>
+                <button class="sheet-tab-btn" id="tab-rejected" onclick="switchTab('rejected')">Отклонено (0)</button>
+            </div>
+
+            <!-- Одобрено -->
+            <div id="list-approved" class="list-container active">
+                <div style="text-align: center; color: var(--text-muted); margin-top: 40px; font-size: 14px;">Тут пока
+                    пусто</div>
+            </div>
+
+            <!-- Отклонено -->
+            <div id="list-rejected" class="list-container">
+                <div style="text-align: center; color: var(--text-muted); margin-top: 40px; font-size: 14px;">Тут пока
+                    пусто</div>
+            </div>
+        </div>
+
+        <!-- ================= ЭКРАН 4: НАСТРОЙКИ ================= -->
+        <div id="screen-settings" class="screen hidden">
+            <div class="header">
+                <button class="btn-icon" onclick="openScreen('screen-prep')">←</button>
+                <h1>Настройки</h1>
+                <div style="width: 36px;"></div>
+            </div>
+
+            <div class="settings-content">
+                <!-- Категория 1 -->
+                <div class="settings-section">
+                    <h3>Умный старт</h3>
+                    <div class="setting-row" style="flex-direction: column; align-items: stretch; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="setting-info">
+                                <p class="setting-title">Пропускать интро</p>
+                                <p class="setting-desc">Начинать играть трек не с начала</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" checked onchange="toggleSmartJump(this)">
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+                        <div id="smart-jump-controls" style="display: flex; flex-direction: column; gap: 8px;">
+                            <div
+                                style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+                                <span>Смещение (сек):</span>
+                                <span id="lbl-offset">30s</span>
+                            </div>
+                            <input type="range" class="slider" min="5" max="60" value="30"
+                                oninput="document.getElementById('lbl-offset').innerText = this.value + 's'">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Категория 2 -->
+                <div class="settings-section">
+                    <h3>Жесты и Вибро</h3>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <p class="setting-title">Тактильный отклик</p>
+                            <p class="setting-desc">Вибрация устройства при свайпах</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row" style="flex-direction: column; align-items: stretch; gap: 8px;">
+                        <div
+                            style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+                            <span>Чувствительность свайпа:</span>
+                        </div>
+                        <input type="range" class="slider" min="1" max="10" value="5">
+                    </div>
+                </div>
+
+                <!-- Категория 3 -->
+                <div class="settings-section">
+                    <h3>Медиатека</h3>
+                    <div class="setting-row" style="cursor: pointer;">
+                        <div class="setting-info">
+                            <p class="setting-title">Черный список папок</p>
+                            <p class="setting-desc">Игнорировать Telegram, WhatsApp и др.</p>
+                        </div>
+                        <span>❯</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= МЕНЕДЖЕР ИСТОЧНИКОВ (Оверлей) ================= -->
+        <div id="modal-sources" class="modal" onclick="toggleModal(false)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">Источники музыки</h3>
+                <div class="source-item">
+                    <span>📁 /sdcard/Music</span>
+                    <span style="cursor: pointer; color: var(--accent-red)">✕</span>
+                </div>
+                <div class="source-item">
+                    <span>📁 /sdcard/Download</span>
+                    <span style="cursor: pointer; color: var(--accent-red)">✕</span>
+                </div>
+                <div class="source-item">
+                    <span>📄 MyPlaylist.m3u8</span>
+                    <span style="cursor: pointer; color: var(--accent-red)">✕</span>
+                </div>
+                <button class="start-btn" style="background-color: var(--border-color); color: white; margin-top: 12px;"
+                    onclick="alert('Эмуляция вызова SAF')">📁 Добавить папку</button>
+                <button class="start-btn" style="background-color: var(--border-color); color: white;"
+                    onclick="alert('Эмуляция выбора плейлиста')">📄 Добавить плейлист</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= ЛОГИКА (JS) ================= -->
+    <script>
+        // Имитация базы данных треков
+        const mockTracks = [
+            { id: 1, title: "Blinding Lights", artist: "The Weeknd", color: "linear-gradient(135deg, #818cf8, #c084fc)" },
+            { id: 2, title: "Bohemian Rhapsody", artist: "Queen", color: "linear-gradient(135deg, #f87171, #facc15)" },
+            { id: 3, title: "Numb", artist: "Linkin Park", color: "linear-gradient(135deg, #4ade80, #2dd4bf)" },
+            { id: 4, title: "Bad Guy", artist: "Billie Eilish", color: "linear-gradient(135deg, #38bdf8, #818cf8)" },
+            { id: 5, title: "Du Hast", artist: "Rammstein", color: "linear-gradient(135deg, #fb923c, #f87171)" }
+        ];
+
+        let activeIndex = 0;
+        let approvedTracks = [];
+        let rejectedTracks = [];
+        let isPlaying = true;
+        let hudTimer = null;
+
+        // Переключение экранов
+        function openScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(scr => scr.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        // Логика стартового экрана
+        function setLogic(btn) {
+            document.querySelectorAll('.logic-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function toggleModal(show) {
+            document.getElementById('modal-sources').classList.toggle('active', show);
+        }
+
+        // Логика умного старта
+        function toggleSmartJump(checkbox) {
+            document.getElementById('smart-jump-controls').style.opacity = checkbox.checked ? "1" : "0.3";
+            document.getElementById('smart-jump-controls').style.pointerEvents = checkbox.checked ? "auto" : "none";
+        }
+
+        // Выход из сортировки с предупреждением
+        function exitSorting(event) {
+            event.stopPropagation();
+            if (confirm("Прервать сортировку? Прогресс сохранен.")) {
+                openScreen('screen-prep');
+            }
+        }
+
+        // Переключение HUD (прогресс, назад, история)
+        function toggleHUD() {
+            const hud = document.getElementById('hud-top');
+            hud.classList.toggle('visible');
+
+            // Скрыть обратно через 4 секунды
+            clearTimeout(hudTimer);
+            if (hud.classList.contains('visible')) {
+                hudTimer = setTimeout(() => {
+                    hud.classList.remove('visible');
+                }, 4000);
+            }
+        }
+
+        // Переключение плеера по тапу
+        function initPlayerTap() {
+            const card = document.getElementById('main-card');
+            const pauseIcon = document.getElementById('pause-icon');
+            let holdTimer;
+
+            // Логика тапа
+            card.addEventListener('pointerdown', (e) => {
+                holdTimer = setTimeout(() => {
+                    document.getElementById('card-info').style.display = 'flex';
+                }, 600); // Долгий тап 600мс
+            });
+
+            card.addEventListener('pointerup', (e) => {
+                clearTimeout(holdTimer);
+                if (document.getElementById('card-info').style.display === 'flex') {
+                    // Если был открыт оверлей информации, просто скрываем его
+                    document.getElementById('card-info').style.display = 'none';
+                    return;
+                }
+
+                // Обычный клик - Play/Pause
+                if (!isDraggingCard) {
+                    isPlaying = !isPlaying;
+                    pauseIcon.style.display = isPlaying ? 'none' : 'block';
+                }
+            });
+        }
+
+        // Контроль скорости
+        function updateTempo(slider) {
+            slider.previousElementSibling.innerText = parseFloat(slider.value).toFixed(1) + "x";
+        }
+
+        // Шторка истории
+        function toggleBottomSheet(show, event) {
+            if (event) event.stopPropagation();
+            document.getElementById('bottom-sheet-history').classList.toggle('active', show);
+        }
+
+        function switchTab(type) {
+            document.querySelectorAll('.sheet-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.list-container').forEach(c => c.classList.remove('active'));
+
+            if (type === 'approved') {
+                document.getElementById('tab-approved').classList.add('active');
+                document.getElementById('list-approved').classList.add('active');
+            } else {
+                document.getElementById('tab-rejected').classList.add('active');
+                document.getElementById('list-rejected').classList.add('active');
+            }
+        }
+
+        // ИНТЕРАКТИВНЫЕ СВАЙПЫ (UP/DOWN)
+        const card = document.getElementById('main-card');
+        let startY = 0;
+        let isDraggingCard = false;
+        const threshold = 120; // Пикселей для срабатывания действия
+
+        card.addEventListener('pointerdown', (e) => {
+            startY = e.clientY;
+            isDraggingCard = true;
+            card.style.transition = 'none';
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (!isDraggingCard) return;
+            const diffY = e.clientY - startY;
+
+            // Двигаем и немного крутим
+            card.style.transform = `translateY(${diffY}px) rotate(${diffY * 0.03}deg)`;
+
+            // Показываем оверлеи
+            if (diffY < -30) { // Свайп вверх - Одобрить
+                document.getElementById('overlay-approve').style.opacity = Math.min(-diffY / threshold, 1);
+                document.getElementById('overlay-reject').style.opacity = 0;
+            } else if (diffY > 30) { // Свайп вниз - Отклонить
+                document.getElementById('overlay-reject').style.opacity = Math.min(diffY / threshold, 1);
+                document.getElementById('overlay-approve').style.opacity = 0;
+            } else {
+                document.getElementById('overlay-approve').style.opacity = 0;
+                document.getElementById('overlay-reject').style.opacity = 0;
+            }
+        });
+
+        window.addEventListener('pointerup', (e) => {
+            if (!isDraggingCard) return;
+            isDraggingCard = false;
+
+            const diffY = e.clientY - startY;
+            card.style.transition = 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+
+            // Очищаем оверлеи
+            document.getElementById('overlay-approve').style.opacity = 0;
+            document.getElementById('overlay-reject').style.opacity = 0;
+
+            if (diffY < -threshold) {
+                // Улет вверх (Одобрено)
+                card.style.transform = 'translateY(-200%) rotate(-30deg)';
+                triggerAction('approved');
+            } else if (diffY > threshold) {
+                // Улет вниз (Отклонено)
+                card.style.transform = 'translateY(200%) rotate(30deg)';
+                triggerAction('rejected');
+            } else {
+                // Возврат
+                card.style.transform = 'translateY(0) rotate(0)';
+            }
+        });
+
+        // Обработка решений
+        function triggerAction(actionType) {
+            const currentTrack = mockTracks[activeIndex];
+
+            if (actionType === 'approved') {
+                approvedTracks.push(currentTrack);
+                triggerHaptic(1); // Короткая вибро
+            } else {
+                rejectedTracks.push(currentTrack);
+                triggerHaptic(2); // Двойная короткая вибро
+            }
+
+            updateHistoryUI();
+
+            // Переход к следующему
+            setTimeout(() => {
+                activeIndex++;
+                if (activeIndex >= mockTracks.length) {
+                    alert("Сортировка завершена! Генерация файла плейлиста.");
+                    activeIndex = 0;
+                    approvedTracks = [];
+                    rejectedTracks = [];
+                    updateHistoryUI();
+                    openScreen('screen-prep');
+                }
+                loadTrack(activeIndex);
+            }, 200);
+        }
+
+        // Симуляция виброотклика на вебе
+        function triggerHaptic(type) {
+            if ("vibrate" in navigator) {
+                if (type === 1) navigator.vibrate(15);
+                else if (type === 2) navigator.vibrate([15, 30, 15]);
+            }
+        }
+
+        // Обновление трека в колоде
+        function loadTrack(index) {
+            const track = mockTracks[index];
+            const card = document.getElementById('main-card');
+
+            // Плавное возвращение новой карты
+            card.style.transition = 'none';
+            card.style.transform = 'scale(0.8) translateY(0)';
+            card.style.opacity = '0';
+
+            document.getElementById('card-title').innerText = track.title;
+            document.getElementById('card-artist').innerText = track.artist;
+            document.getElementById('card-art').style.background = track.color;
+            document.getElementById('track-counter').innerText = `${index + 1} / ${mockTracks.length}`;
+
+            // Эмуляция проигрывания с "Умного старта"
+            isPlaying = true;
+            document.getElementById('pause-icon').style.display = 'none';
+
+            setTimeout(() => {
+                card.style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.1), opacity 0.2s';
+                card.style.transform = 'scale(1) translateY(0)';
+                card.style.opacity = '1';
+            }, 50);
+        }
+
+        // Отрисовка листов истории
+        function updateHistoryUI() {
+            // Обновим цифры на вкладках
+            document.getElementById('tab-approved').innerText = `Одобрено (${approvedTracks.length})`;
+            document.getElementById('tab-rejected').innerText = `Отклонено (${rejectedTracks.length})`;
+
+            // Сборка листов
+            renderList('list-approved', approvedTracks, 'approved');
+            renderList('list-rejected', rejectedTracks, 'rejected');
+        }
+
+        function renderList(containerId, list, type) {
+            const container = document.getElementById(containerId);
+            if (list.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: var(--text-muted); margin-top: 40px; font-size: 14px;">Тут пока пусто</div>';
+                return;
+            }
+
+            container.innerHTML = list.map((track, i) => `
+                <div class="history-item" onclick="alert('Воспроизведение: ${track.title}')">
+                    <div class="history-item-meta">
+                        <p class="history-item-title">${track.title}</p>
+                        <p class="history-item-artist">${track.artist}</p>
+                    </div>
+                    <div class="history-actions" onclick="event.stopPropagation()">
+                        <button class="history-btn" title="Вернуть обратно" onclick="undoTrack(${track.id}, '${type}')">↺</button>
+                        <button class="history-btn" title="Перекинуть" onclick="moveTrack(${track.id}, '${type}')">⇆</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Кнопка возврата (Undo) в истории
+        function undoTrack(trackId, sourceListType) {
+            let track;
+            if (sourceListType === 'approved') {
+                const idx = approvedTracks.findIndex(t => t.id === trackId);
+                track = approvedTracks.splice(idx, 1)[0];
+            } else {
+                const idx = rejectedTracks.findIndex(t => t.id === trackId);
+                track = rejectedTracks.splice(idx, 1)[0];
+            }
+
+            // Помещаем этот трек обратно следующим в очередь
+            mockTracks.splice(activeIndex, 0, track);
+
+            updateHistoryUI();
+            loadTrack(activeIndex);
+            toggleBottomSheet(false);
+        }
+
+        // Кнопка перекидывания из одной группы в другую
+        function moveTrack(trackId, sourceListType) {
+            if (sourceListType === 'approved') {
+                const idx = approvedTracks.findIndex(t => t.id === trackId);
+                const track = approvedTracks.splice(idx, 1)[0];
+                rejectedTracks.push(track);
+            } else {
+                const idx = rejectedTracks.findIndex(t => t.id === trackId);
+                const track = rejectedTracks.splice(idx, 1)[0];
+                approvedTracks.push(track);
+            }
+            updateHistoryUI();
+        }
+
+        // Инициализация при старте
+        initPlayerTap();
+        loadTrack(0);
+
+    </script>
+</body>
+
+</html>

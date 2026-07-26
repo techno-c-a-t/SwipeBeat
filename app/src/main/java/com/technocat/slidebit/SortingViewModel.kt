@@ -3,11 +3,24 @@ package com.technocat.slidebit
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 
 data class SwipeAction(
     val track: Track,
     val isApproved: Boolean,
     val queueIndex: Int
+)
+
+data class ScanProgressState(
+    val isScanning: Boolean = false,
+    val isPaused: Boolean = false,
+    val currentSource: String = "",
+    val filesFound: Int = 0,
+    val totalScannedSources: Int = 0,
+    val totalSourcesToScan: Int = 0
 )
 
 class SortingViewModel : ViewModel() {
@@ -32,6 +45,197 @@ class SortingViewModel : ViewModel() {
 
     val selectedSources = mutableListOf<SelectedSource>()
     var selectedLogicMode = LogicMode.UNION
+
+    val scanProgress = MutableLiveData<ScanProgressState>(ScanProgressState())
+
+    @Volatile
+    private var scanThread: Thread? = null
+
+    @Volatile
+    private var isScanCancelled = false
+
+    @Volatile
+    private var isScanPaused = false
+
+    @Volatile
+    private var isDiscardAll = false
+
+    private val scanQueue = mutableListOf<android.net.Uri>()
+    @Volatile
+    private var isDeviceMediaQueued = false
+
+    private var overallScannedCount = 0
+    private var overallTotalToScan = 0
+
+    var onScanFinished: (() -> Unit)? = null
+
+    fun queueScan(context: android.content.Context, uri: android.net.Uri) {
+        synchronized(scanQueue) {
+            if (!scanQueue.contains(uri)) {
+                scanQueue.add(uri)
+                overallTotalToScan++
+            }
+        }
+        startScanLoopIfNeeded(context)
+    }
+
+    fun queueDeviceMediaScan(context: android.content.Context) {
+        synchronized(scanQueue) {
+            isDeviceMediaQueued = true
+            overallTotalToScan++
+        }
+        startScanLoopIfNeeded(context)
+    }
+
+    private fun startScanLoopIfNeeded(context: android.content.Context) {
+        val currThread = scanThread
+        if (currThread != null && currThread.isAlive) {
+            val curr = scanProgress.value ?: ScanProgressState()
+            scanProgress.postValue(curr.copy(totalSourcesToScan = overallTotalToScan))
+            return
+        }
+
+        isScanCancelled = false
+        isScanPaused = false
+        isDiscardAll = false
+
+        scanProgress.value = ScanProgressState(
+            isScanning = true,
+            isPaused = false,
+            currentSource = "Подготовка...",
+            filesFound = 0,
+            totalScannedSources = overallScannedCount,
+            totalSourcesToScan = overallTotalToScan
+        )
+
+        scanThread = Thread {
+            val scanner = LocalDirectoryScanner(context)
+            
+            while (true) {
+                var nextUri: android.net.Uri? = null
+                var isDevice = false
+
+                synchronized(scanQueue) {
+                    if (isScanCancelled) {
+                        scanQueue.clear()
+                        isDeviceMediaQueued = false
+                        break
+                    }
+                    if (isScanPaused) {
+                        break
+                    }
+                    if (isDeviceMediaQueued) {
+                        isDevice = true
+                        isDeviceMediaQueued = false
+                    } else if (scanQueue.isNotEmpty()) {
+                        nextUri = scanQueue.removeAt(0)
+                    }
+                }
+
+                if (nextUri == null && !isDevice) {
+                    break
+                }
+
+                if (isDevice) {
+                    scanProgress.postValue(ScanProgressState(
+                        isScanning = true,
+                        isPaused = false,
+                        currentSource = "Медиатека устройства",
+                        filesFound = 0,
+                        totalScannedSources = overallScannedCount,
+                        totalSourcesToScan = overallTotalToScan
+                    ))
+                    val tracks = scanner.scanDeviceMedia()
+                    if (!isDiscardAll) {
+                        val displayName = "Вся медиатека"
+                        selectedSources.removeAll { it.uri.toString() == "media://device" }
+                        selectedSources.add(SelectedSource(android.net.Uri.parse("media://device"), displayName, tracks))
+                    }
+                } else {
+                    val uri = nextUri!!
+                    val displayName = uri.lastPathSegment ?: uri.toString()
+
+                    scanProgress.postValue(ScanProgressState(
+                        isScanning = true,
+                        isPaused = false,
+                        currentSource = displayName,
+                        filesFound = 0,
+                        totalScannedSources = overallScannedCount,
+                        totalSourcesToScan = overallTotalToScan
+                    ))
+
+                    val tracks = scanner.scanCustomFolderUri(uri, { isScanCancelled || isScanPaused }) { progressCount ->
+                        scanProgress.postValue(ScanProgressState(
+                            isScanning = true,
+                            isPaused = false,
+                            currentSource = displayName,
+                            filesFound = progressCount,
+                            totalScannedSources = overallScannedCount,
+                            totalSourcesToScan = overallTotalToScan
+                        ))
+                    }
+
+                    if (!isDiscardAll) {
+                        selectedSources.removeAll { it.uri == uri }
+                        selectedSources.add(SelectedSource(uri, displayName, tracks))
+                    }
+
+                    if (isScanPaused) {
+                        synchronized(scanQueue) {
+                            if (!scanQueue.contains(uri)) {
+                                scanQueue.add(0, uri)
+                            }
+                        }
+                    }
+                }
+
+                overallScannedCount++
+            }
+
+            scanProgress.postValue(ScanProgressState(
+                isScanning = false,
+                isPaused = isScanPaused,
+                currentSource = if (isScanPaused) "Сканирование приостановлено" else "",
+                totalScannedSources = overallScannedCount,
+                totalSourcesToScan = overallTotalToScan
+            ))
+            scanThread = null
+            if (!isScanPaused) {
+                overallScannedCount = 0
+                overallTotalToScan = 0
+            }
+            
+            onScanFinished?.let {
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    it.invoke()
+                }
+            }
+        }
+        scanThread?.start()
+    }
+
+    fun stopScanningAndKeep() {
+        isScanPaused = true
+    }
+
+    fun resumeScanning(context: android.content.Context) {
+        isScanPaused = false
+        startScanLoopIfNeeded(context)
+    }
+
+    fun cancelScanning() {
+        isScanCancelled = true
+        isDiscardAll = true
+        scanThread?.interrupt()
+        synchronized(scanQueue) {
+            scanQueue.clear()
+            isDeviceMediaQueued = false
+        }
+        scanProgress.postValue(ScanProgressState(isScanning = false, isPaused = false))
+        scanThread = null
+        overallScannedCount = 0
+        overallTotalToScan = 0
+    }
 
     fun combineSelectedSources() {
         val sources = selectedSources
@@ -146,6 +350,20 @@ class SortingViewModel : ViewModel() {
 
         _totalTracks.value = trackQueue.size
         setCurrentIndexAndTrack(index)
+    }
+
+    fun setTrackQueue(tracks: List<Track>) {
+        trackQueue.clear()
+        trackQueue.addAll(tracks)
+        approvedTracks.clear()
+        rejectedTracks.clear()
+        _totalTracks.value = trackQueue.size
+        _currentIndex.value = 0
+        if (trackQueue.isNotEmpty()) {
+            _currentTrack.value = trackQueue[0]
+        } else {
+            _currentTrack.value = null
+        }
     }
 
     fun togglePlayPause() {
@@ -273,6 +491,55 @@ class SortingViewModel : ViewModel() {
             _currentIndex.value = index
             _currentTrack.value = null
             _isPlaying.value = false
+        }
+    }
+
+    private var metadataLoaderJob: Job? = null
+
+    fun preloadMetadataAroundCurrent(context: android.content.Context) {
+        metadataLoaderJob?.cancel()
+        val index = _currentIndex.value ?: 0
+        val queue = trackQueue.toList()
+        if (queue.isEmpty()) return
+
+        metadataLoaderJob = viewModelScope.launch(Dispatchers.IO) {
+            val retriever = android.media.MediaMetadataRetriever()
+            val start = index
+            val end = (index + 15).coerceAtMost(queue.size - 1)
+            
+            for (i in start..end) {
+                if (i !in queue.indices) continue
+                val track = queue[i]
+                if (track.metadataLoaded) continue
+
+                try {
+                    context.contentResolver.openFileDescriptor(track.uri, "r")?.use { pfd ->
+                        retriever.setDataSource(pfd.fileDescriptor)
+                        val metaTitle = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_TITLE)
+                        val metaArtist = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST)
+                        
+                        var updated = false
+                        if (!metaTitle.isNullOrEmpty() && metaTitle != track.title) {
+                            track.title = metaTitle
+                            updated = true
+                        }
+                        if (!metaArtist.isNullOrEmpty() && metaArtist != track.artist) {
+                            track.artist = metaArtist
+                            updated = true
+                        }
+                        track.metadataLoaded = true
+                        
+                        if (updated && i == _currentIndex.value) {
+                            _currentTrack.postValue(track)
+                        }
+                    }
+                } catch (e: Exception) {
+                    track.metadataLoaded = true
+                }
+            }
+            try {
+                retriever.release()
+            } catch (e: Exception) {}
         }
     }
 }

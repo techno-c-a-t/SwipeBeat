@@ -4,10 +4,11 @@ import android.net.Uri
 
 data class Track(
     val id: String,
-    val title: String,
-    val artist: String,
+    var title: String,
+    var artist: String,
     val filePath: String,
-    val uri: Uri
+    val uri: Uri,
+    var metadataLoaded: Boolean = false
 ) {
     fun toJson(): org.json.JSONObject {
         return org.json.JSONObject().apply {
@@ -16,14 +17,11 @@ data class Track(
             put("artist", artist)
             put("filePath", filePath)
             put("uri", uri.toString())
+            put("metadataLoaded", metadataLoaded)
         }
     }
 
     fun getMatchKey(): String {
-        val metaKey = "${artist.trim()} - ${title.trim()}".lowercase()
-        if (metaKey.replace("-", "").trim().isNotEmpty()) {
-            return metaKey
-        }
         return filePath.substringAfterLast('/').lowercase().trim()
     }
 
@@ -34,7 +32,8 @@ data class Track(
                 title = json.getString("title"),
                 artist = json.getString("artist"),
                 filePath = json.getString("filePath"),
-                uri = Uri.parse(json.getString("uri"))
+                uri = Uri.parse(json.getString("uri")),
+                metadataLoaded = json.optBoolean("metadataLoaded", false)
             )
         }
     }

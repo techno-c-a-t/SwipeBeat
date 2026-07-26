@@ -9,7 +9,7 @@ import java.util.UUID
 
 class PlaylistParser(private val context: Context) {
 
-    fun parseM3U8(fileUri: Uri): List<Track> {
+    fun parseM3U8(fileUri: Uri, parseAllText: Boolean): List<Track> {
         val tracks = mutableListOf<Track>()
         try {
             context.contentResolver.openInputStream(fileUri)?.use { inputStream ->
@@ -18,8 +18,23 @@ class PlaylistParser(private val context: Context) {
                     var currentTitle = ""
                     var currentArtist = ""
 
+                    var isM3U = false
+                    val lines = mutableListOf<String>()
                     while (line != null) {
-                        val trimmedLine = line.trim()
+                        lines.add(line)
+                        val trimmed = line.trim()
+                        if (trimmed.startsWith("#EXTM3U") || trimmed.startsWith("#EXTINF")) {
+                            isM3U = true
+                        }
+                        line = reader.readLine()
+                    }
+
+                    if (!isM3U && !parseAllText) {
+                        return emptyList()
+                    }
+
+                    for (rawLine in lines) {
+                        val trimmedLine = rawLine.trim()
                         if (trimmedLine.isNotEmpty()) {
                             if (trimmedLine.startsWith("#EXTINF:")) {
                                 // Parse #EXTINF:<duration>,<artist> - <title> or <title>
@@ -67,7 +82,6 @@ class PlaylistParser(private val context: Context) {
                                 currentArtist = ""
                             }
                         }
-                        line = reader.readLine()
                     }
                 }
             }

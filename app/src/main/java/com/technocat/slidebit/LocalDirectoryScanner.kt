@@ -5,14 +5,30 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import androidx.documentfile.provider.DocumentFile
 
 class LocalDirectoryScanner(private val context: Context) {
+
+    companion object {
+        @Volatile
+        private var cacheInstance: MetadataCache? = null
+
+        fun getCache(context: Context): MetadataCache {
+            return cacheInstance ?: synchronized(this) {
+                cacheInstance ?: MetadataCache(context.applicationContext).also { cacheInstance = it }
+            }
+        }
+    }
+
+    private fun getCacheEnabledSetting(): Boolean {
+        val prefs = context.getSharedPreferences("SlideboxPrefs", Context.MODE_PRIVATE)
+        return prefs.getBoolean("SettingMetadataCache", true)
+    }
 
     fun scanSlideboxFolder(): List<Track> {
         val tracks = mutableListOf<Track>()
         val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
 
-        // Select the columns we want to retrieve
         val projection = mutableListOf(
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.TITLE,
@@ -20,21 +36,17 @@ class LocalDirectoryScanner(private val context: Context) {
             MediaStore.Audio.Media.DATA
         )
 
-        // Add RELATIVE_PATH for API 29+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             projection.add(MediaStore.Audio.Media.RELATIVE_PATH)
         }
 
-        // We want to filter for files in the Slidebox directory inside Download(s)
         val selection: String
         val selectionArgs: Array<String>
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // RELATIVE_PATH matches "Download/Slidebox/" or "Downloads/Slidebox/"
             selection = "(${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ? OR ${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?)"
             selectionArgs = arrayOf("Download/Slidebox%", "Downloads/Slidebox%")
         } else {
-            // On older versions we filter by _data (physical path)
             selection = "(${MediaStore.Audio.Media.DATA} LIKE ? OR ${MediaStore.Audio.Media.DATA} LIKE ?)"
             selectionArgs = arrayOf("%/Download/Slidebox/%", "%/Downloads/Slidebox/%")
         }
@@ -61,7 +73,6 @@ class LocalDirectoryScanner(private val context: Context) {
                     val path = c.getString(dataCol) ?: ""
                     val contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
 
-                    // Verify that the file has a valid audio extension
                     val lowerPath = path.lowercase()
                     if (lowerPath.endsWith(".mp3") || lowerPath.endsWith(".wav") || 
                         lowerPath.endsWith(".ogg") || lowerPath.endsWith(".flac") || 
@@ -86,12 +97,63 @@ class LocalDirectoryScanner(private val context: Context) {
         return tracks
     }
 
-    fun scanCustomFolderUri(treeUri: Uri): List<Track> {
+    fun scanDeviceMedia(): List<Track> {
         val tracks = mutableListOf<Track>()
+        val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        val projection = mutableListOf(
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.DATA
+        )
+        val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
         try {
-            val rootDoc = androidx.documentfile.provider.DocumentFile.fromTreeUri(context, treeUri)
-            if (rootDoc != null && rootDoc.isDirectory) {
-                scanDirRecursive(rootDoc, tracks)
+            val cursor = context.contentResolver.query(
+                uri,
+                projection.toTypedArray(),
+                selection,
+                null,
+                null
+            )
+            cursor?.use { c ->
+                val idCol = c.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                val titleCol = c.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+                val artistCol = c.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+                val dataCol = c.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+                while (c.moveToNext()) {
+                    val id = c.getLong(idCol)
+                    val title = c.getString(titleCol) ?: "Unknown Track"
+                    val artist = c.getString(artistCol) ?: "Unknown Artist"
+                    val path = c.getString(dataCol) ?: ""
+                    val contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+                    
+                    var isBlacklisted = false
+                    val settingsPrefs = context.getSharedPreferences("SlideboxPrefs", Context.MODE_PRIVATE)
+                    val blacklistStr = settingsPrefs.getString("SettingBlacklistedFolders", null)
+                    if (blacklistStr != null) {
+                        val array = org.json.JSONArray(blacklistStr)
+                        for (i in 0 until array.length()) {
+                            val blackPath = array.getString(i)
+                            if (path.contains(blackPath) || contentUri.toString().contains(blackPath)) {
+                                isBlacklisted = true
+                                break
+                            }
+                        }
+                    }
+                    
+                    if (!isBlacklisted) {
+                        tracks.add(
+                            Track(
+                                id = id.toString(),
+                                title = title,
+                                artist = artist,
+                                filePath = path,
+                                uri = contentUri,
+                                metadataLoaded = true
+                            )
+                        )
+                    }
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -99,7 +161,27 @@ class LocalDirectoryScanner(private val context: Context) {
         return tracks
     }
 
-    private fun getMetadata(file: androidx.documentfile.provider.DocumentFile): Pair<String, String> {
+    fun scanCustomFolderUri(
+        treeUri: Uri,
+        isCancelled: () -> Boolean,
+        onProgress: (Int) -> Unit
+    ): List<Track> {
+        val tracks = mutableListOf<Track>()
+        try {
+            val rootDoc = DocumentFile.fromTreeUri(context, treeUri)
+            if (rootDoc != null && rootDoc.isDirectory) {
+                scanDirRecursive(rootDoc, tracks, isCancelled, onProgress)
+            }
+            if (getCacheEnabledSetting()) {
+                getCache(context).saveToDisk()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return tracks
+    }
+
+    private fun getMetadata(file: DocumentFile): Pair<String, String> {
         val retriever = android.media.MediaMetadataRetriever()
         var title = file.name?.substringBeforeLast(".") ?: "Unknown Track"
         var artist = "Unknown Artist"
@@ -125,11 +207,18 @@ class LocalDirectoryScanner(private val context: Context) {
         return Pair(title, artist)
     }
 
-    private fun scanDirRecursive(dir: androidx.documentfile.provider.DocumentFile, tracks: MutableList<Track>) {
+    private fun scanDirRecursive(
+        dir: DocumentFile,
+        tracks: MutableList<Track>,
+        isCancelled: () -> Boolean,
+        onProgress: (Int) -> Unit
+    ) {
+        if (isCancelled()) return
         val files = dir.listFiles()
         for (file in files) {
+            if (isCancelled()) return
             if (file.isDirectory) {
-                scanDirRecursive(file, tracks)
+                scanDirRecursive(file, tracks, isCancelled, onProgress)
             } else if (file.isFile) {
                 val name = file.name ?: ""
                 val lowerName = name.lowercase()
@@ -137,16 +226,21 @@ class LocalDirectoryScanner(private val context: Context) {
                     lowerName.endsWith(".ogg") || lowerName.endsWith(".flac") || 
                     lowerName.endsWith(".m4a") || lowerName.endsWith(".opus")) {
                     
-                    val meta = getMetadata(file)
+                    val fileUriStr = file.uri.toString()
+                    val title = name.substringBeforeLast(".")
+                    val artist = "Unknown Artist"
+                    
                     tracks.add(
                         Track(
-                            id = file.uri.toString(),
-                            title = meta.first,
-                            artist = meta.second,
-                            filePath = file.uri.toString(),
-                            uri = file.uri
+                            id = fileUriStr,
+                            title = title,
+                            artist = artist,
+                            filePath = fileUriStr,
+                            uri = file.uri,
+                            metadataLoaded = false
                         )
                     )
+                    onProgress(tracks.size)
                 }
             }
         }

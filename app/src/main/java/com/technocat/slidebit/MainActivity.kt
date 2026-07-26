@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var playerEngine: AudioPlayerEngine
+    private lateinit var tutorialManager: TutorialManager
 
     private val viewModel: SortingViewModel by lazy {
         ViewModelProvider(this)[SortingViewModel::class.java]
@@ -97,8 +98,37 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.OpenDocument()
     ) { uri ->
         if (uri != null) {
-            importPlaylistAsync(uri)
+            val fileName = getFileName(uri) ?: uri.toString()
+            val isM3u = fileName.endsWith(".m3u", ignoreCase = true) || fileName.endsWith(".m3u8", ignoreCase = true)
+            if (!isM3u && !viewModel.settings.parseAllTextFilesAsPlaylists) {
+                Toast.makeText(this, "Пожалуйста, выберите файл M3U/M3U8. Вы можете включить поддержку любых текстовых файлов в Расширенных настройках.", Toast.LENGTH_LONG).show()
+            } else {
+                importPlaylistAsync(uri)
+            }
         }
+    }
+
+    private fun getFileName(uri: Uri): String? {
+        var name: String? = null
+        if (uri.scheme == "content") {
+            val cursor = contentResolver.query(uri, null, null, null, null)
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val index = it.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                    if (index != -1) {
+                        name = it.getString(index)
+                    }
+                }
+            }
+        }
+        if (name == null) {
+            name = uri.path
+            val cut = name?.lastIndexOf('/')
+            if (cut != null && cut != -1) {
+                name = name?.substring(cut + 1)
+            }
+        }
+        return name
     }
 
     private val selectFolderLauncher = registerForActivityResult(
@@ -136,16 +166,68 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private var isSavingPreviousSession = false
+
     private val createPlaylistLauncher = registerForActivityResult(
         ActivityResultContracts.CreateDocument("audio/x-mpegurl")
     ) { uri ->
         if (uri != null) {
             writePlaylistToUri(uri)
+            if (isSavingPreviousSession) {
+                clearSavedSession()
+                isSavingPreviousSession = false
+                updateResumeButtonState()
+                updatePrepScreenStatus()
+            }
+        }
+    }
+
+    private fun clearSavedSession() {
+        val prefs = getSharedPreferences("SlideboxPrefs", MODE_PRIVATE)
+        prefs.edit().apply {
+            remove("SessionQueue")
+            remove("SessionApproved")
+            remove("SessionRejected")
+            remove("SessionHistory")
+            remove("SessionIndex")
+            remove("SessionSourceStatus")
+            apply()
+        }
+    }
+
+    private fun savePreviousSessionDirectly() {
+        val prefs = getSharedPreferences("SlideboxPrefs", MODE_PRIVATE)
+        val approvedStr = prefs.getString("SessionApproved", null)
+        if (!approvedStr.isNullOrEmpty() && approvedStr != "[]") {
+            isSavingPreviousSession = true
+            try {
+                val approvedJson = org.json.JSONArray(approvedStr)
+                val approved = mutableListOf<Track>()
+                for (i in 0 until approvedJson.length()) {
+                    approved.add(Track.fromJson(approvedJson.getJSONObject(i)))
+                }
+                viewModel.approvedTracks.clear()
+                viewModel.approvedTracks.addAll(approved)
+                
+                val ext = if (approved.isNotEmpty()) {
+                    getDefaultPlaylistExtension(approved)
+                } else {
+                    "m3u8"
+                }
+                val playlistName = prefs.getString("SettingPlaylistName", "playlist") ?: "playlist"
+                createPlaylistLauncher.launch("$playlistName.$ext")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this, "Не удалось загрузить сохраненную сессию!", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "Нет сохраненной сессии или она пуста!", Toast.LENGTH_SHORT).show()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.statusBarColor = android.graphics.Color.parseColor("#09090B")
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -171,7 +253,7 @@ class MainActivity : AppCompatActivity() {
             showRenamePlaylistDialog()
         }
 
-        binding.btnSettings.setOnClickListener {
+        binding.btnSettingsPrep.setOnClickListener {
             binding.screenPrep.visibility = View.GONE
             binding.screenSettings.visibility = View.VISIBLE
         }
@@ -191,6 +273,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        binding.btnScanStop.setOnClickListener {
+            val state = viewModel.scanProgress.value
+            if (state != null && state.isPaused) {
+                viewModel.resumeScanning(this)
+            } else {
+                viewModel.stopScanningAndKeep()
+            }
+        }
+
+        binding.btnScanCancel.setOnClickListener {
+            viewModel.cancelScanning()
+        }
+
         binding.btnResumeSort.setOnClickListener {
             if (loadSessionFromPrefs()) {
                 binding.screenPrep.visibility = View.GONE
@@ -201,6 +296,10 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Нет сохраненной сессии", Toast.LENGTH_SHORT).show()
             }
+        }
+
+        binding.btnSavePrevSession.setOnClickListener {
+            savePreviousSessionDirectly()
         }
 
         binding.btnExitSort.setOnClickListener {
@@ -325,6 +424,7 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.currentIndex.observe(this) {
             updateCounterText()
+            viewModel.preloadMetadataAroundCurrent(this)
         }
 
         viewModel.totalTracks.observe(this) {
@@ -338,6 +438,43 @@ class MainActivity : AppCompatActivity() {
             } else {
                 binding.tvPauseIndicator.visibility = View.VISIBLE
                 playerEngine.pause()
+            }
+        }
+
+        viewModel.scanProgress.observe(this) { state ->
+            if (state.isScanning) {
+                binding.cardScanProgress.visibility = View.VISIBLE
+                binding.btnStartSort.isEnabled = false
+                binding.btnStartSort.alpha = 0.5f
+                binding.btnScanStop.text = "СТОП"
+                binding.btnScanStop.setTextColor(android.graphics.Color.parseColor("#E4E4E7"))
+
+                val sourceProgressStr = if (state.totalSourcesToScan > 1) {
+                    " (${state.totalScannedSources + 1} из ${state.totalSourcesToScan})"
+                } else {
+                    ""
+                }
+                binding.tvScanStatusTitle.text = "Сканирование: ${state.currentSource}$sourceProgressStr"
+                binding.tvScanDetails.text = "Найдено файлов: ${state.filesFound}"
+            } else if (state.isPaused) {
+                binding.cardScanProgress.visibility = View.VISIBLE
+                val hasTracks = viewModel.trackQueue.isNotEmpty()
+                binding.btnStartSort.isEnabled = hasTracks
+                binding.btnStartSort.alpha = if (hasTracks) 1.0f else 0.5f
+                binding.btnScanStop.text = "ПРОДОЛЖИТЬ"
+                binding.btnScanStop.setTextColor(android.graphics.Color.parseColor("#10B981"))
+
+                binding.tvScanStatusTitle.text = "Сканирование приостановлено"
+                binding.tvScanDetails.text = "Найдено файлов: ${state.filesFound}"
+                viewModel.combineSelectedSources()
+                updatePrepScreenStatus()
+            } else {
+                binding.cardScanProgress.visibility = View.GONE
+                viewModel.combineSelectedSources()
+                updatePrepScreenStatus()
+                val hasTracks = viewModel.trackQueue.isNotEmpty()
+                binding.btnStartSort.isEnabled = hasTracks
+                binding.btnStartSort.alpha = if (hasTracks) 1.0f else 0.5f
             }
         }
     }
@@ -397,16 +534,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupLogicControl() {
-        binding.btnLogicUnion.setOnClickListener {
-            syncLogicModeUI(LogicMode.UNION)
-        }
-        binding.btnLogicDup.setOnClickListener {
-            syncLogicModeUI(LogicMode.DUP)
-        }
-        binding.btnLogicUnique.setOnClickListener {
-            syncLogicModeUI(LogicMode.UNIQUE)
-        }
-        
         binding.sbSettingsLogic.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
@@ -427,13 +554,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun syncLogicModeUI(mode: LogicMode) {
         viewModel.selectedLogicMode = mode
-        val selectedBtn = when (mode) {
-            LogicMode.UNION -> binding.btnLogicUnion
-            LogicMode.DUP -> binding.btnLogicDup
-            LogicMode.UNIQUE -> binding.btnLogicUnique
-        }
-        updateLogicControl(selectedBtn)
-        
         binding.sbSettingsLogic.progress = when (mode) {
             LogicMode.UNION -> 0
             LogicMode.DUP -> 1
@@ -449,19 +569,6 @@ class MainActivity : AppCompatActivity() {
             LogicMode.UNION -> "Логика сессии: Объединить"
             LogicMode.DUP -> "Логика сессии: Дубликаты"
             LogicMode.UNIQUE -> "Логика сессии: Уникальные"
-        }
-    }
-
-    private fun updateLogicControl(selected: TextView) {
-        val buttons = listOf(binding.btnLogicUnion, binding.btnLogicDup, binding.btnLogicUnique)
-        for (btn in buttons) {
-            if (btn == selected) {
-                btn.setBackgroundResource(R.drawable.bg_tab_selected)
-                btn.setTextColor(0xFFF4F4F5.toInt())
-            } else {
-                btn.setBackgroundColor(android.graphics.Color.TRANSPARENT)
-                btn.setTextColor(0xFF71717A.toInt())
-            }
         }
     }
 
@@ -582,16 +689,48 @@ class MainActivity : AppCompatActivity() {
         binding.switchDetailedSettings.isChecked = viewModel.settings.isDetailedSettingsEnabled
         binding.layoutDetailedSettingsSection.visibility = if (viewModel.settings.isDetailedSettingsEnabled) View.VISIBLE else View.GONE
         binding.switchAdvancedSources.isChecked = viewModel.settings.isAdvancedSourcesModeEnabled
+        binding.switchParseAllTextPlaylists.isChecked = viewModel.settings.parseAllTextFilesAsPlaylists
+        binding.switchMetadataCache.isChecked = viewModel.settings.isMetadataCacheEnabled
 
         binding.switchDetailedSettings.setOnCheckedChangeListener { _, isChecked ->
             viewModel.settings.isDetailedSettingsEnabled = isChecked
             binding.layoutDetailedSettingsSection.visibility = if (isChecked) View.VISIBLE else View.GONE
+            if (!isChecked) {
+                viewModel.settings.vibrationStrength = 80
+                viewModel.settings.autosaveInterval = 5
+                viewModel.settings.isAdvancedSourcesModeEnabled = false
+                viewModel.settings.parseAllTextFilesAsPlaylists = false
+                viewModel.settings.isMetadataCacheEnabled = true
+
+                binding.sbVibrationStrength.progress = 80
+                binding.tvVibeLabel.text = "Сила вибрации: 80 ms"
+                binding.sbAutosaveInterval.progress = 5
+                binding.tvAutosaveLabel.text = "Автосохранение сессии: каждые 5 треков"
+                binding.switchAdvancedSources.isChecked = false
+                binding.switchParseAllTextPlaylists.isChecked = false
+                binding.switchMetadataCache.isChecked = true
+            }
             saveSettingsToPrefs()
         }
 
         binding.switchAdvancedSources.setOnCheckedChangeListener { _, isChecked ->
             viewModel.settings.isAdvancedSourcesModeEnabled = isChecked
             saveSettingsToPrefs()
+        }
+
+        binding.switchParseAllTextPlaylists.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.settings.parseAllTextFilesAsPlaylists = isChecked
+            saveSettingsToPrefs()
+        }
+
+        binding.switchMetadataCache.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.settings.isMetadataCacheEnabled = isChecked
+            saveSettingsToPrefs()
+        }
+
+        binding.btnClearMetadataCache.setOnClickListener {
+            LocalDirectoryScanner.getCache(this).clear()
+            Toast.makeText(this, "Кэш метаданных очищен", Toast.LENGTH_SHORT).show()
         }
 
         binding.btnRestoreDefaults.setOnClickListener {
@@ -611,6 +750,8 @@ class MainActivity : AppCompatActivity() {
                     viewModel.settings.playlistName = "Sorted_Slidebox"
                     viewModel.settings.isDetailedSettingsEnabled = false
                     viewModel.settings.isAdvancedSourcesModeEnabled = false
+                    viewModel.settings.isMetadataCacheEnabled = true
+                    viewModel.settings.parseAllTextFilesAsPlaylists = false
                     
                     saveSettingsToPrefs()
                     applyTheme("dark")
@@ -626,6 +767,8 @@ class MainActivity : AppCompatActivity() {
                     binding.switchDetailedSettings.isChecked = false
                     binding.layoutDetailedSettingsSection.visibility = View.GONE
                     binding.switchAdvancedSources.isChecked = false
+                    binding.switchParseAllTextPlaylists.isChecked = false
+                    binding.switchMetadataCache.isChecked = true
                     
                     // Also update UI controls on sorting screen HUD
                     binding.sbVolume.progress = 100
@@ -656,6 +799,7 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     isEnabled = false
                     onBackPressedDispatcher.onBackPressed()
+                    isEnabled = true
                 }
             }
         })
@@ -666,6 +810,15 @@ class MainActivity : AppCompatActivity() {
         val sheetBinding = LayoutSourcesSheetBinding.inflate(layoutInflater)
         dialog.setContentView(sheetBinding.root)
 
+        sheetBinding.btnSheetDeviceLibrary.setOnClickListener {
+            if (checkPermissions()) {
+                dialog.dismiss()
+                viewModel.queueDeviceMediaScan(this)
+            } else {
+                requestPermissions()
+            }
+        }
+
         sheetBinding.btnSheetAddFolder.setOnClickListener {
             dialog.dismiss()
             selectFolderLauncher.launch(null)
@@ -674,12 +827,29 @@ class MainActivity : AppCompatActivity() {
         sheetBinding.btnSheetImportM3u8.setOnClickListener {
             if (checkPermissions()) {
                 dialog.dismiss()
-                selectM3u8Launcher.launch(arrayOf("*/*"))
+                val mimeTypes = if (viewModel.settings.parseAllTextFilesAsPlaylists) {
+                    arrayOf(
+                        "audio/x-mpegurl",
+                        "audio/mpegurl",
+                        "application/x-mpegurl",
+                        "application/vnd.apple.mpegurl",
+                        "text/*"
+                    )
+                } else {
+                    arrayOf(
+                        "audio/x-mpegurl",
+                        "audio/mpegurl",
+                        "application/x-mpegurl",
+                        "application/vnd.apple.mpegurl"
+                    )
+                }
+                selectM3u8Launcher.launch(mimeTypes)
             } else {
                 requestPermissions()
             }
         }
 
+        populateCreatedPlaylists(sheetBinding.createdPlaylistsContainer, dialog)
         populateActiveSources(sheetBinding.activeSourcesContainer, sheetBinding.tvActiveSourcesHeader)
         populateRecentFolders(sheetBinding.recentFoldersContainer, dialog)
 
@@ -780,30 +950,11 @@ class MainActivity : AppCompatActivity() {
     private fun exitSortingDirectly() {
         playerEngine.stop()
         viewModel.setPlaying(false)
-        if (viewModel.approvedTracks.isNotEmpty()) {
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Сохранить плейлист?")
-                .setMessage("Хотите сохранить плейлист с текущими результатами?")
-                .setPositiveButton("Да") { _, _ ->
-                    askSavePlaylist()
-                    binding.screenPrep.visibility = View.VISIBLE
-                    binding.screenSort.visibility = View.GONE
-                    updatePrepScreenStatus()
-                    updateResumeButtonState()
-                }
-                .setNegativeButton("Нет") { _, _ ->
-                    binding.screenPrep.visibility = View.VISIBLE
-                    binding.screenSort.visibility = View.GONE
-                    updatePrepScreenStatus()
-                    updateResumeButtonState()
-                }
-                .show()
-        } else {
-            binding.screenPrep.visibility = View.VISIBLE
-            binding.screenSort.visibility = View.GONE
-            updatePrepScreenStatus()
-            updateResumeButtonState()
-        }
+        saveSessionToPrefs()
+        binding.screenPrep.visibility = View.VISIBLE
+        binding.screenSort.visibility = View.GONE
+        updatePrepScreenStatus()
+        updateResumeButtonState()
     }
 
     private fun updatePrepScreenStatus() {
@@ -825,16 +976,13 @@ class MainActivity : AppCompatActivity() {
             }
             
             if (sourcesCount > 1) {
-                binding.cardSessionLogic.visibility = View.VISIBLE
                 binding.tvLogs.text = "Логика: $logicStr. Готово к сортировке. Треков в очереди: $combinedTracks."
             } else {
-                binding.cardSessionLogic.visibility = View.GONE
                 binding.tvLogs.text = "Готово к сортировке. Треков в очереди: $combinedTracks."
             }
         } else {
             binding.tvSourceStatus.text = "Не выбрано (Нажмите для выбора)"
             binding.tvLogs.text = "Выберите источник и нажмите «Начать новую сортировку»"
-            binding.cardSessionLogic.visibility = View.GONE
         }
     }
 
@@ -894,17 +1042,18 @@ class MainActivity : AppCompatActivity() {
         }
         vibrate("single")
         binding.cardTrack.animate()
-            .translationX(400f)
+            .translationX(600f)
             .alpha(0f)
             .setDuration(120)
             .withEndAction {
                 viewModel.undo()
                 checkAutosave()
-                binding.cardTrack.translationX = 0f
+                binding.cardTrack.translationX = -600f
                 binding.cardTrack.alpha = 0f
                 binding.cardTrack.animate()
+                    .translationX(0f)
                     .alpha(1f)
-                    .setDuration(150)
+                    .setDuration(180)
                     .start()
             }
             .start()
@@ -964,7 +1113,7 @@ class MainActivity : AppCompatActivity() {
         Thread {
             try {
                 val parser = PlaylistParser(this)
-                val tracks = parser.parseM3U8(uri)
+                val tracks = parser.parseM3U8(uri, viewModel.settings.parseAllTextFilesAsPlaylists)
                 runOnUiThread {
                     hideLoadingDialog()
                     if (tracks.isNotEmpty()) {
@@ -991,35 +1140,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun scanCustomFolder(uri: Uri) {
-        showLoadingDialog("Сканирование папки...")
-        Thread {
-            try {
-                val scanner = LocalDirectoryScanner(this)
-                val tracks = scanner.scanCustomFolderUri(uri)
-                runOnUiThread {
-                    hideLoadingDialog()
-                    if (tracks.isNotEmpty()) {
-                        val displayName = uri.lastPathSegment ?: uri.toString()
-                        viewModel.selectedSources.removeAll { it.uri == uri }
-                        viewModel.selectedSources.add(SelectedSource(uri, displayName, tracks))
-                        
-                        viewModel.combineSelectedSources()
-                        saveFolderToRecent(uri)
-                        updatePrepScreenStatus()
-                        updateResumeButtonState()
-                        Toast.makeText(this, "Папка добавлена: $displayName (${tracks.size} треков)", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(this, "Музыка в выбранной папке не найдена!", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                runOnUiThread {
-                    hideLoadingDialog()
-                    Toast.makeText(this, "Ошибка при сканировании папки: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-            }
-        }.start()
+        saveFolderToRecent(uri)
+        viewModel.queueScan(this, uri)
     }
 
     private fun saveFolderToRecent(uri: Uri) {
@@ -1100,6 +1222,111 @@ class MainActivity : AppCompatActivity() {
                 tvDelete.setOnClickListener {
                     removeRecentFolder(uriStr)
                     populateRecentFolders(container, dialog)
+                }
+
+                row.addView(tvName)
+                row.addView(tvDelete)
+                container.addView(row)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun saveCreatedPlaylist(name: String, uri: Uri) {
+        val prefs = getSharedPreferences("SlideboxPrefs", MODE_PRIVATE)
+        val createdJson = prefs.getString("CreatedPlaylists", "[]") ?: "[]"
+        try {
+            val array = org.json.JSONArray(createdJson)
+            val uriStr = uri.toString()
+            var exists = false
+            for (i in 0 until array.length()) {
+                val obj = array.getJSONObject(i)
+                if (obj.getString("uri") == uriStr) {
+                    exists = true
+                    break
+                }
+            }
+            if (!exists) {
+                val newObj = org.json.JSONObject().apply {
+                    put("name", name)
+                    put("uri", uriStr)
+                }
+                array.put(newObj)
+                prefs.edit().putString("CreatedPlaylists", array.toString()).apply()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun populateCreatedPlaylists(container: LinearLayout, dialog: BottomSheetDialog) {
+        container.removeAllViews()
+        val prefs = getSharedPreferences("SlideboxPrefs", MODE_PRIVATE)
+        val createdJson = prefs.getString("CreatedPlaylists", "[]") ?: "[]"
+        try {
+            val array = org.json.JSONArray(createdJson)
+            if (array.length() == 0) {
+                val tvEmpty = TextView(this).apply {
+                    text = "Нет созданных плейлистов"
+                    setTextColor(android.graphics.Color.parseColor("#71717A"))
+                    textSize = 13f
+                    setPadding(0, 16, 0, 16)
+                }
+                container.addView(tvEmpty)
+                return
+            }
+
+            for (i in 0 until array.length()) {
+                val obj = array.getJSONObject(i)
+                val name = obj.getString("name")
+                val uriStr = obj.getString("uri")
+                val uri = Uri.parse(uriStr)
+
+                val row = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        setMargins(0, 0, 0, 8)
+                    }
+                    setBackgroundResource(R.drawable.bg_history_item)
+                    setPadding(24, 24, 24, 24)
+                    gravity = android.view.Gravity.CENTER_VERTICAL
+                }
+
+                val tvName = TextView(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                    text = name
+                    setTextColor(android.graphics.Color.parseColor("#E4E4E7"))
+                    textSize = 13f
+                }
+
+                row.setOnClickListener {
+                    dialog.dismiss()
+                    importPlaylistAsync(uri)
+                }
+
+                val tvDelete = TextView(this).apply {
+                    text = "✕"
+                    setTextColor(android.graphics.Color.parseColor("#EF4444"))
+                    setPadding(16, 8, 16, 8)
+                }
+
+                tvDelete.setOnClickListener {
+                    try {
+                        val newArray = org.json.JSONArray()
+                        for (j in 0 until array.length()) {
+                            if (j != i) {
+                                newArray.put(array.get(j))
+                            }
+                        }
+                        prefs.edit().putString("CreatedPlaylists", newArray.toString()).apply()
+                        populateCreatedPlaylists(container, dialog)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
 
                 row.addView(tvName)
@@ -1225,15 +1452,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkSavedSessionExists(): Boolean {
         val prefs = getSharedPreferences("SlideboxPrefs", MODE_PRIVATE)
-        return prefs.contains("SessionQueue")
+        val queueStr = prefs.getString("SessionQueue", null)
+        if (queueStr.isNullOrEmpty() || queueStr.trim() == "[]") return false
+        return true
     }
 
     private fun updateResumeButtonState() {
         if (checkSavedSessionExists()) {
-            binding.btnResumeSort.alpha = 1.0f
+            binding.layoutResumeArea.visibility = View.VISIBLE
             binding.btnResumeSort.isEnabled = true
+            binding.btnResumeSort.alpha = 1.0f
         } else {
-            binding.btnResumeSort.alpha = 0.5f
+            binding.layoutResumeArea.visibility = View.GONE
             binding.btnResumeSort.isEnabled = false
         }
     }
@@ -1315,10 +1545,22 @@ class MainActivity : AppCompatActivity() {
                 writer.flush()
             }
             
+            try {
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
             val filename = uri.path?.substringAfterLast('/') ?: uri.toString()
             Toast.makeText(this, "Плейлист успешно сохранен!", Toast.LENGTH_SHORT).show()
             savePlaylistToHistory(filename, viewModel.approvedTracks.size)
+            saveCreatedPlaylist(filename, uri)
             binding.tvLogs.text = "Сохранен плейлист: $filename\n(Количество треков: ${viewModel.approvedTracks.size})"
+            clearSavedSession()
+            updateResumeButtonState()
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(this, "Ошибка сохранения: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
@@ -1398,7 +1640,6 @@ class MainActivity : AppCompatActivity() {
 
         binding.cardSelectSource.setCardBackgroundColor(cardColor)
         binding.cardOutputPlaylist.setCardBackgroundColor(cardColor)
-        binding.cardSessionLogic.setCardBackgroundColor(cardColor)
 
         binding.cardTrack.setCardBackgroundColor(cardColor)
 
@@ -1522,6 +1763,8 @@ class MainActivity : AppCompatActivity() {
             putString("SettingPlaylistName", viewModel.settings.playlistName)
             putBoolean("SettingDetailedSettings", viewModel.settings.isDetailedSettingsEnabled)
             putBoolean("SettingAdvancedSourcesMode", viewModel.settings.isAdvancedSourcesModeEnabled)
+            putBoolean("SettingMetadataCache", viewModel.settings.isMetadataCacheEnabled)
+            putBoolean("SettingParseAllTextPlaylists", viewModel.settings.parseAllTextFilesAsPlaylists)
             
             val blacklistArray = org.json.JSONArray()
             for (f in viewModel.settings.blacklistedFolders) {
@@ -1546,6 +1789,8 @@ class MainActivity : AppCompatActivity() {
         viewModel.settings.playlistName = prefs.getString("SettingPlaylistName", "Sorted_Slidebox") ?: "Sorted_Slidebox"
         viewModel.settings.isDetailedSettingsEnabled = prefs.getBoolean("SettingDetailedSettings", false)
         viewModel.settings.isAdvancedSourcesModeEnabled = prefs.getBoolean("SettingAdvancedSourcesMode", false)
+        viewModel.settings.isMetadataCacheEnabled = prefs.getBoolean("SettingMetadataCache", true)
+        viewModel.settings.parseAllTextFilesAsPlaylists = prefs.getBoolean("SettingParseAllTextPlaylists", false)
         
         val blacklistStr = prefs.getString("SettingBlacklistedFolders", null)
         if (blacklistStr != null) {
@@ -1582,5 +1827,50 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         playerEngine.release()
+    }
+
+    private fun showWelcomeTutorialDialog() {
+        val dialog = WelcomeTutorialDialogFragment()
+        dialog.onInteractiveSelected = {
+            tutorialManager.startInteractiveTutorial(binding)
+        }
+        dialog.onFastSelected = {
+            val fastDialog = FastTutorialDialogFragment()
+            fastDialog.onDismissListener = {
+                tutorialManager.markTutorialCompleted()
+            }
+            fastDialog.show(supportFragmentManager, FastTutorialDialogFragment.TAG)
+        }
+        dialog.onSkipSelected = {
+            tutorialManager.markTutorialCompleted()
+        }
+        dialog.show(supportFragmentManager, WelcomeTutorialDialogFragment.TAG)
+    }
+
+    fun showPrepScreen() {
+        binding.screenPrep.visibility = View.VISIBLE
+        binding.screenSort.visibility = View.GONE
+        binding.screenSettings.visibility = View.GONE
+    }
+
+    fun showSettingsScreen() {
+        binding.screenPrep.visibility = View.GONE
+        binding.screenSort.visibility = View.GONE
+        binding.screenSettings.visibility = View.VISIBLE
+    }
+
+    fun openSourcesSheetForTutorial(onAdded: () -> Unit) {
+        showSourcesSheet()
+        onAdded()
+    }
+
+    fun startDemoSortingSession() {
+        binding.screenPrep.visibility = View.GONE
+        binding.screenSettings.visibility = View.GONE
+        binding.screenSort.visibility = View.VISIBLE
+        binding.layoutTopHUD.visibility = View.GONE
+        binding.tvTopTriggerHint.visibility = View.VISIBLE
+        binding.tvTopTriggerHint.alpha = 1.0f
+        viewModel.initSession(viewModel.trackQueue.toList())
     }
 }
