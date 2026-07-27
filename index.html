@@ -1,294 +1,354 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title data-i18n="docTitle">SwipeBeat — Sort Local Music with Swipes on Android</title>
-  <meta name="description" content="A lightweight Android app to sort local music using swipes. 100% offline, privacy-first, free.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="web/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="docTitle">SwipeBeat — Sort Local Music with Swipes on Android</title>
+    <meta name="description"
+        content="A lightweight Android app to sort local music using swipes. 100% offline, privacy-first, free.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="web/style.css">
 </head>
+
 <body>
 
-  <div class="ambient-glow"></div>
-  <div class="grid-pattern"></div>
+    <div class="ambient-glow"></div>
+    <div class="grid-pattern"></div>
 
-  <!-- HEADER -->
-  <header>
-    <div class="container nav-wrapper">
-      <a href="#" class="logo-area">
-        <div class="app-icon-box">
-          <img src="app.png" alt="SwipeBeat" class="app-icon-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-          <div class="app-icon-fallback" style="display:none;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M8 5V19L19 12L8 5Z" fill="#6366F1"/>
-            </svg>
-          </div>
-        </div>
-        <span>SwipeBeat</span>
-      </a>
+    <!-- HEADER -->
+    <header>
+        <div class="container nav-wrapper">
+            <a href="#" class="logo-area">
+                <div class="app-icon-box">
+                    <img src="app.png" alt="SwipeBeat" class="app-icon-img"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="app-icon-fallback" style="display:none;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M8 5V19L19 12L8 5Z" fill="#6366F1" />
+                        </svg>
+                    </div>
+                </div>
+                <span>SwipeBeat</span>
+            </a>
 
-      <div class="nav-right">
-        <ul class="nav-links">
-          <li><a href="#features" data-i18n="navFeatures">Features</a></li>
-          <li><a href="#gestures" data-i18n="navGestures">Gestures</a></li>
-          <li><a href="#author" data-i18n="navAuthor">Author</a></li>
-        </ul>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="#features" data-i18n="navFeatures">Features</a></li>
+                    <li><a href="#gestures" data-i18n="navGestures">Gestures</a></li>
+                    <li><a href="#author" data-i18n="navAuthor">Author</a></li>
+                </ul>
 
-        <!-- LANGUAGE DROPDOWN -->
-        <div class="lang-dropdown">
-          <button class="lang-btn" id="langBtn">
-            <span id="currentLangLabel">🇬🇧 EN</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M6 9l6 6 6-6"/>
-            </svg>
-          </button>
-          <div class="lang-menu" id="langMenu">
-            <div class="lang-option" onclick="setLanguage('be')">🇧🇾 Беларуская</div>
-            <div class="lang-option" onclick="setLanguage('en')">🇬🇧 English</div>
-            <div class="lang-option" onclick="setLanguage('ru')">🇷🇺 Русский</div>
-          </div>
-        </div>
-
-        <a href="https://github.com/techno-c-a-t/SwipeBeat" target="_blank" rel="noopener" class="btn btn-github">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-          </svg>
-          GitHub
-        </a>
-      </div>
-    </div>
-  </header>
-
-  <main class="container">
-    
-    <!-- HERO -->
-    <section class="hero">
-      <div class="hero-content">
-        <div class="badge">
-          <span class="badge-dot"></span>
-          <span data-i18n="heroBadge">Android App · 100% Offline · Inspired by SlideBox</span>
-        </div>
-        <h1 class="hero-title" data-i18n="heroTitle">Sort your local music with simple swipes</h1>
-        <p class="hero-subtitle" data-i18n="heroSubtitle">
-          A lightweight, intuitive utility to clean up your music library. Just listen and swipe!
-        </p>
-        <div class="hero-actions">
-          <button class="btn btn-primary btn-download-wide" id="openModalBtn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-            </svg>
-            <span data-i18n="btnDownload" href="https://github.com/techno-c-a-t/SwipeBeat/releases/download/v1.0.0/SwipeBeat.apk">Download APK</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- INTERACTIVE DEMO PHONE -->
-      <div class="phone-mockup-wrapper">
-        <div class="phone-mockup">
-          <div class="phone-notch"></div>
-          <div class="phone-screen">
-            <div class="demo-header">
-              <span>SwipeBeat</span>
-              <span id="demo-index">Track 1 of 3</span>
-            </div>
-
-            <div class="demo-card-stage">
-              <div class="demo-card" id="interactive-card">
-                <div class="demo-badge-status status-approve" id="badge-approve">Approved ⬆</div>
-                
-                <div class="demo-album-art">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
-                    <path d="M9 18V5l12-2v13"></path>
-                    <circle cx="6" cy="18" r="3"></circle>
-                    <circle cx="18" cy="16" r="3"></circle>
-                  </svg>
+                <!-- LANGUAGE DROPDOWN -->
+                <div class="lang-dropdown">
+                    <button class="lang-btn" id="langBtn">
+                        <span id="currentLangLabel">🇬🇧 EN</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M6 9l6 6 6-6" />
+                        </svg>
+                    </button>
+                    <div class="lang-menu" id="langMenu">
+                        <div class="lang-option" onclick="setLanguage('be')">🇧🇾 Беларуская</div>
+                        <div class="lang-option" onclick="setLanguage('en')">🇬🇧 English</div>
+                        <div class="lang-option" onclick="setLanguage('ru')">🇷🇺 Русский</div>
+                    </div>
                 </div>
 
-                <div class="demo-track-info">
-                  <div class="demo-track-title" id="track-title">Midnight City</div>
-                  <div class="demo-track-artist" id="track-artist">M83</div>
-                </div>
+                <a href="https://github.com/techno-c-a-t/SwipeBeat" target="_blank" rel="noopener"
+                    class="btn btn-github">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                    </svg>
+                    GitHub
+                </a>
+            </div>
+        </div>
+    </header>
 
-                <div class="demo-actions-hint">
-                  <button class="demo-btn-action" onclick="triggerSwipe('down')" title="Skip (Down)">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-                  </button>
-                  <button class="demo-btn-action" onclick="triggerSwipe('up')" title="Approve (Up)">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                  </button>
-                </div>
+    <main class="container">
 
-                <div class="demo-badge-status status-reject" id="badge-reject">Skipped ⬇</div>
-              </div>
+        <!-- HERO -->
+        <section class="hero">
+            <div class="hero-content">
+                <div class="badge">
+                    <span class="badge-dot"></span>
+                    <span data-i18n="heroBadge">Android App · 100% Offline · Inspired by SlideBox</span>
+                </div>
+                <h1 class="hero-title" data-i18n="heroTitle">Sort your local music with simple swipes</h1>
+                <p class="hero-subtitle" data-i18n="heroSubtitle">
+                    A lightweight, intuitive utility to clean up your music library. Just listen and swipe!
+                </p>
+                <div class="hero-actions">
+                    <button class="btn btn-primary btn-download-wide" id="openModalBtn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                        </svg>
+                        <span data-i18n="btnDownload"
+                            href="https://github.com/techno-c-a-t/SwipeBeat/releases/download/v1.0.0/SwipeBeat.apk">Download
+                            APK</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="demo-counter-bar">
-              <div class="counter-item"><span data-i18n="demoApproved">Approved</span>: <span id="count-approved">0</span></div>
-              <div class="counter-item"><span data-i18n="demoRejected">Skipped</span>: <span id="count-rejected">0</span></div>
+            <!-- INTERACTIVE DEMO PHONE -->
+            <div class="phone-mockup-wrapper">
+                <div class="phone-mockup">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div class="demo-header">
+                            <span>SwipeBeat</span>
+                            <span id="demo-index">Track 1 of 3</span>
+                        </div>
+
+                        <div class="demo-card-stage">
+                            <div class="demo-card" id="interactive-card">
+                                <div class="demo-badge-status status-approve" id="badge-approve">Approved ⬆</div>
+
+                                <div class="demo-album-art">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffffff"
+                                        stroke-width="2">
+                                        <path d="M9 18V5l12-2v13"></path>
+                                        <circle cx="6" cy="18" r="3"></circle>
+                                        <circle cx="18" cy="16" r="3"></circle>
+                                    </svg>
+                                </div>
+
+                                <div class="demo-track-info">
+                                    <div class="demo-track-title" id="track-title">Midnight City</div>
+                                    <div class="demo-track-artist" id="track-artist">M83</div>
+                                </div>
+
+                                <div class="demo-actions-hint">
+                                    <button class="demo-btn-action" onclick="triggerSwipe('down')" title="Skip (Down)">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path d="M12 5v14M19 12l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <button class="demo-btn-action" onclick="triggerSwipe('up')" title="Approve (Up)">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <path d="M12 19V5M5 12l7-7 7 7" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div class="demo-badge-status status-reject" id="badge-reject">Skipped ⬇</div>
+                            </div>
+                        </div>
+
+                        <div class="demo-counter-bar">
+                            <div class="counter-item"><span data-i18n="demoApproved">Approved</span>: <span
+                                    id="count-approved">0</span></div>
+                            <div class="counter-item"><span data-i18n="demoRejected">Skipped</span>: <span
+                                    id="count-rejected">0</span></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
+        </section>
+
+        <!-- FEATURES -->
+        <section id="features" style="padding-top: 40px;">
+            <div class="section-title-wrapper">
+                <div class="section-subtitle" data-i18n="featSubtitle">Features</div>
+                <h2 class="section-title" data-i18n="featTitle">Everything you need to sort music</h2>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 19V5M5 12l7-7 7 7" />
+                        </svg>
+                    </div>
+                    <h3 class="feature-title" data-i18n="f1Title">Swipe Controls</h3>
+                    <p class="feature-desc" data-i18n="f1Desc">Swipe up to approve a track, swipe down to skip. Instant
+                        response with tactile vibration feedback.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title" data-i18n="f2Title">Smart Jump</h3>
+                    <p class="feature-desc" data-i18n="f2Desc">Skip long intro silence automatically. Fast forward by
+                        seconds or percentage to hear the song's core.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="feature-title" data-i18n="f3Title">History & Undo</h3>
+                    <p class="feature-desc" data-i18n="f3Desc">Open history anytime with one click. Undo mistakes easily
+                        by swiping sideways.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title" data-i18n="f4Title">Sources & Duplicates</h3>
+                    <p class="feature-desc" data-i18n="f4Desc">Select local folders or existing .m3u playlists. Smart
+                        filtering removes unwanted duplicates.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title" data-i18n="f5Title">M3U / M3U8 Export</h3>
+                    <p class="feature-desc" data-i18n="f5Desc">Auto-detects character encoding (UTF-8) so your playlists
+                        render properly on any external player.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title" data-i18n="f6Title">100% Offline & Private</h3>
+                    <p class="feature-desc" data-i18n="f6Desc">Works exclusively with local files. No internet access,
+                        no accounts, no ads, no trackers.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- GESTURES BANNER -->
+        <section id="gestures" class="gestures-banner">
+            <div style="text-align: center;">
+                <h3 style="font-size: 1.5rem; font-weight: 700;" data-i18n="gestTitle">Gestures Overview</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;" data-i18n="gestSubtitle">
+                    Intuitive controls designed for one-handed use</p>
+            </div>
+
+            <div class="gestures-list">
+                <div class="gesture-item">
+                    <div class="gesture-icon-badge">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5">
+                            <path d="M12 19V5M5 12l7-7 7 7" />
+                        </svg>
+                    </div>
+                    <div class="gesture-name" data-i18n="g1Name">Swipe Up</div>
+                    <div class="gesture-action" data-i18n="g1Action">Approve & add to playlist</div>
+                </div>
+
+                <div class="gesture-item">
+                    <div class="gesture-icon-badge">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5">
+                            <path d="M12 5v14M19 12l-7 7-7-7" />
+                        </svg>
+                    </div>
+                    <div class="gesture-name" data-i18n="g2Name">Swipe Down</div>
+                    <div class="gesture-action" data-i18n="g2Action">Skip track</div>
+                </div>
+
+                <div class="gesture-item">
+                    <div class="gesture-icon-badge">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5">
+                            <path d="M18 12H6M12 6l-6 6 6 6" />
+                        </svg>
+                    </div>
+                    <div class="gesture-name" data-i18n="g3Name">Swipe Sideways</div>
+                    <div class="gesture-action" data-i18n="g3Action">Undo last action</div>
+                </div>
+
+                <div class="gesture-item">
+                    <div class="gesture-icon-badge">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5">
+                            <circle cx="12" cy="12" r="8" />
+                            <path d="M12 8v8" />
+                        </svg>
+                    </div>
+                    <div class="gesture-name" data-i18n="g4Name">Tap Card</div>
+                    <div class="gesture-action" data-i18n="g4Action">Pause / Resume track</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AUTHOR SECTION -->
+        <section id="author" class="author-section">
+            <div class="author-info">
+                <img src="web/avatar.png" alt="technocat" class="author-avatar" id="authorAvatar">
+                <div>
+                    <div class="author-name">technocat</div>
+                    <div class="author-role" data-i18n="authorRole">Developer of SwipeBeat</div>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;" data-i18n="authorBio">
+                        Creating privacy-first, local tools for Android.
+                    </p>
+                </div>
+            </div>
+
+            <a href="https://technocat.cc" target="_blank" rel="noopener" class="btn btn-secondary"
+                data-i18n="btnAboutAuthor">
+                About Author ↗
+            </a>
+        </section>
+
+    </main>
+
+    <!-- MODAL DIALOG -->
+    <div class="modal-backdrop" id="downloadModal">
+        <div class="modal-card">
+            <button class="modal-close-btn" id="closeModalBtn">&times;</button>
+            <div class="modal-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+            </div>
+            <h3 class="modal-title" data-i18n="modalTitle">Quick Heads Up</h3>
+            <p class="modal-text" data-i18n="modalText">
+                I don't have a Google Play Developer account (yet), so your phone might show a warning about installing
+                an APK from an unknown source. Don't worry, it's completely safe and virus-free!
+            </p>
+            <div class="modal-actions">
+                <a href="https://github.com/techno-c-a-t/SwipeBeat/releases/download/v1.0.0/SwipeBeat.apk" download class="btn btn-primary btn-full-modal" id="confirmDownloadBtn" data-i18n="modalConfirm">
+                    Okay, download
+                </a>
+            </div>
         </div>
-      </div>
-    </section>
-
-    <!-- FEATURES -->
-    <section id="features" style="padding-top: 40px;">
-      <div class="section-title-wrapper">
-        <div class="section-subtitle" data-i18n="featSubtitle">Features</div>
-        <h2 class="section-title" data-i18n="featTitle">Everything you need to sort music</h2>
-      </div>
-
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-          </div>
-          <h3 class="feature-title" data-i18n="f1Title">Swipe Controls</h3>
-          <p class="feature-desc" data-i18n="f1Desc">Swipe up to approve a track, swipe down to skip. Instant response with tactile vibration feedback.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-          </div>
-          <h3 class="feature-title" data-i18n="f2Title">Smart Jump</h3>
-          <p class="feature-desc" data-i18n="f2Desc">Skip long intro silence automatically. Fast forward by seconds or percentage to hear the song's core.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          </div>
-          <h3 class="feature-title" data-i18n="f3Title">History & Undo</h3>
-          <p class="feature-desc" data-i18n="f3Desc">Open history anytime with one click. Undo mistakes easily by swiping sideways.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"></path></svg>
-          </div>
-          <h3 class="feature-title" data-i18n="f4Title">Sources & Duplicates</h3>
-          <p class="feature-desc" data-i18n="f4Desc">Select local folders or existing .m3u playlists. Smart filtering removes unwanted duplicates.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline></svg>
-          </div>
-          <h3 class="feature-title" data-i18n="f5Title">M3U / M3U8 Export</h3>
-          <p class="feature-desc" data-i18n="f5Desc">Auto-detects character encoding (UTF-8) so your playlists render properly on any external player.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
-          </div>
-          <h3 class="feature-title" data-i18n="f6Title">100% Offline & Private</h3>
-          <p class="feature-desc" data-i18n="f6Desc">Works exclusively with local files. No internet access, no accounts, no ads, no trackers.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- GESTURES BANNER -->
-    <section id="gestures" class="gestures-banner">
-      <div style="text-align: center;">
-        <h3 style="font-size: 1.5rem; font-weight: 700;" data-i18n="gestTitle">Gestures Overview</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;" data-i18n="gestSubtitle">Intuitive controls designed for one-handed use</p>
-      </div>
-
-      <div class="gestures-list">
-        <div class="gesture-item">
-          <div class="gesture-icon-badge">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-          </div>
-          <div class="gesture-name" data-i18n="g1Name">Swipe Up</div>
-          <div class="gesture-action" data-i18n="g1Action">Approve & add to playlist</div>
-        </div>
-
-        <div class="gesture-item">
-          <div class="gesture-icon-badge">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-          </div>
-          <div class="gesture-name" data-i18n="g2Name">Swipe Down</div>
-          <div class="gesture-action" data-i18n="g2Action">Skip track</div>
-        </div>
-
-        <div class="gesture-item">
-          <div class="gesture-icon-badge">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5"><path d="M18 12H6M12 6l-6 6 6 6"/></svg>
-          </div>
-          <div class="gesture-name" data-i18n="g3Name">Swipe Sideways</div>
-          <div class="gesture-action" data-i18n="g3Action">Undo last action</div>
-        </div>
-
-        <div class="gesture-item">
-          <div class="gesture-icon-badge">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5"><circle cx="12" cy="12" r="8"/><path d="M12 8v8"/></svg>
-          </div>
-          <div class="gesture-name" data-i18n="g4Name">Tap Card</div>
-          <div class="gesture-action" data-i18n="g4Action">Pause / Resume track</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- AUTHOR SECTION -->
-    <section id="author" class="author-section">
-      <div class="author-info">
-        <img src="web/avatar.png" alt="technocat" class="author-avatar" id="authorAvatar">
-        <div>
-          <div class="author-name">technocat</div>
-          <div class="author-role" data-i18n="authorRole">Developer of SwipeBeat</div>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;" data-i18n="authorBio">
-            Creating privacy-first, local tools for Android.
-          </p>
-        </div>
-      </div>
-
-      <a href="https://technocat.cc" target="_blank" rel="noopener" class="btn btn-secondary" data-i18n="btnAboutAuthor">
-        About Author ↗
-      </a>
-    </section>
-
-  </main>
-
-  <!-- MODAL DIALOG -->
-  <div class="modal-backdrop" id="downloadModal">
-    <div class="modal-card">
-      <button class="modal-close-btn" id="closeModalBtn">&times;</button>
-      <div class="modal-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2">
-          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-          <line x1="12" y1="9" x2="12" y2="13"/>
-          <line x1="12" y1="17" x2="12.01" y2="17"/>
-        </svg>
-      </div>
-      <h3 class="modal-title" data-i18n="modalTitle">Quick Heads Up</h3>
-      <p class="modal-text" data-i18n="modalText">
-        I don't have a Google Play Developer account (yet), so your phone might show a warning about installing an APK from an unknown source. Don't worry, it's completely safe and virus-free!
-      </p>
-      <div class="modal-actions">
-        <a href="https://github.com/techno-c-a-t/SwipeBeat/releases" target="_blank" rel="noopener" class="btn btn-primary btn-full-modal" id="confirmDownloadBtn" data-i18n="modalConfirm">
-          Okay, download
-        </a>
-      </div>
     </div>
-  </div>
 
-  <!-- FOOTER -->
-  <footer>
-    <div class="container footer-wrapper">
-      <div>
-        © <span id="year"></span> SwipeBeat by <strong>technocat</strong>. Open Source project.
-      </div>
-      <div>
-        <a href="https://github.com/techno-c-a-t/SwipeBeat" target="_blank" rel="noopener" style="color: var(--text-muted);">GitHub Repository</a>
-      </div>
-    </div>
-  </footer>
+    <!-- FOOTER -->
+    <footer>
+        <div class="container footer-wrapper">
+            <div>
+                © <span id="year"></span> SwipeBeat by <strong>technocat</strong>. Open Source project.
+            </div>
+            <div>
+                <a href="https://github.com/techno-c-a-t/SwipeBeat" target="_blank" rel="noopener"
+                    style="color: var(--text-muted);">GitHub Repository</a>
+            </div>
+        </div>
+    </footer>
 
-  <script src="web/script.js"></script>
+    <script src="web/script.js"></script>
 </body>
+
 </html>
