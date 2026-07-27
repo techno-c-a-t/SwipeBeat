@@ -1850,7 +1850,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadSettingsFromPrefs() {
         val prefs = getSharedPreferences("SlideboxPrefs", MODE_PRIVATE)
-        viewModel.settings.isSmartJumpEnabled = prefs.getBoolean("SettingSmartJump", false)
+        viewModel.settings.isSmartJumpEnabled = prefs.getBoolean("SettingSmartJump", true)
         viewModel.settings.smartJumpSeconds = prefs.getInt("SettingSmartJumpSec", 30)
         viewModel.settings.smartJumpPct = prefs.getInt("SettingSmartJumpPct", 10)
         viewModel.settings.vibrationStrength = prefs.getInt("SettingVibeStrength", 80)
@@ -1949,22 +1949,77 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showLinkConfirmationDialog(url: String) {
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Перейти по ссылке?")
-            .setMessage(url)
-            .setPositiveButton("Да") { dialog, _ ->
+        val dialog = android.app.Dialog(this)
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        val dpToPx = { dp: Int -> (dp * resources.displayMetrics.density).toInt() }
+
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = getDrawable(R.drawable.bg_button_secondary)
+            setPadding(dpToPx(20), dpToPx(20), dpToPx(20), dpToPx(20))
+        }
+
+        val tvTitle = TextView(this).apply {
+            text = "Перейти по ссылке?"
+            setTextColor(android.graphics.Color.parseColor("#F4F4F5"))
+            textSize = 18f
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+        }
+
+        val tvUrl = TextView(this).apply {
+            text = url
+            setTextColor(android.graphics.Color.parseColor("#818CF8"))
+            textSize = 13f
+            setPadding(0, dpToPx(10), 0, dpToPx(20))
+            setTextIsSelectable(true)
+        }
+
+        val btnLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.END
+        }
+
+        val btnCancel = androidx.appcompat.widget.AppCompatButton(this).apply {
+            text = "Нет"
+            setTextColor(android.graphics.Color.parseColor("#A1A1AA"))
+            textSize = 14f
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            background = getDrawable(R.drawable.bg_button_secondary)
+            setOnClickListener { dialog.dismiss() }
+        }
+
+        val btnConfirm = androidx.appcompat.widget.AppCompatButton(this).apply {
+            text = "Перейти"
+            setTextColor(android.graphics.Color.parseColor("#F4F4F5"))
+            textSize = 14f
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            background = getDrawable(R.drawable.bg_button_secondary)
+            setOnClickListener {
                 try {
                     val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
                     startActivity(intent)
                 } catch (e: Exception) {
-                    Toast.makeText(this, "Не удалось открыть браузер", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Не удалось открыть браузер", Toast.LENGTH_SHORT).show()
                 }
                 dialog.dismiss()
             }
-            .setNegativeButton("Нет") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .create()
-            .show()
+        }
+
+        val btnParams = LinearLayout.LayoutParams(dpToPx(100), dpToPx(44)).apply {
+            setMargins(dpToPx(8), 0, 0, 0)
+        }
+
+        btnLayout.addView(btnCancel, LinearLayout.LayoutParams(dpToPx(80), dpToPx(44)))
+        btnLayout.addView(btnConfirm, btnParams)
+
+        root.addView(tvTitle)
+        root.addView(tvUrl)
+        root.addView(btnLayout)
+
+        dialog.setContentView(root, android.view.ViewGroup.LayoutParams(dpToPx(320), android.view.ViewGroup.LayoutParams.WRAP_CONTENT))
+        dialog.setCanceledOnTouchOutside(true)
+        dialog.show()
     }
 }

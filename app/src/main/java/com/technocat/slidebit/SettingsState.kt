@@ -16,7 +16,7 @@ data class SelectedSource(
 )
 
 data class SettingsState(
-    var isSmartJumpEnabled: Boolean = false,
+    var isSmartJumpEnabled: Boolean = true,
     var smartJumpSeconds: Int = 30,
     var smartJumpPct: Int = 10,
     var vibrationStrength: Int = 80, // in milliseconds
