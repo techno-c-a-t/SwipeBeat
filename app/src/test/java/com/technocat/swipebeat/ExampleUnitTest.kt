@@ -1,4 +1,4 @@
-package com.technocat.slidebit
+package com.technocat.swipebeat
 
 import org.junit.Test
 

@@ -1,4 +1,4 @@
-package com.technocat.slidebit
+package com.technocat.swipebeat
 
 import android.app.Dialog
 import android.graphics.Color

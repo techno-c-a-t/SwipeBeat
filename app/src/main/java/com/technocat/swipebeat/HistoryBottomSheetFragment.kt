@@ -1,4 +1,4 @@
-package com.technocat.slidebit
+package com.technocat.swipebeat
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.technocat.slidebit.databinding.LayoutHistorySheetBinding
+import com.technocat.swipebeat.databinding.LayoutHistorySheetBinding
 
 class HistoryBottomSheetFragment : BottomSheetDialogFragment() {
 

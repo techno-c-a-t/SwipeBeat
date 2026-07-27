@@ -1,4 +1,4 @@
-package com.technocat.slidebit
+package com.technocat.swipebeat
 
 import android.content.Context
 import androidx.media3.common.MediaItem

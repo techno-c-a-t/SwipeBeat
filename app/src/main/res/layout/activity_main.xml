@@ -54,11 +54,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:text="by technocat"
                 android:textColor="#71717A"
-                android:textSize="13sp"
-                android:textStyle="italic" />
+                android:textSize="20sp"
+                android:textStyle="bold|italic" />
 
         </LinearLayout>
 
@@ -1477,7 +1477,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- ================= ТУТОРИАЛ ОВЕРЛЕЙ ================= -->
-    <com.technocat.slidebit.TutorialOverlayView
+    <com.technocat.swipebeat.TutorialOverlayView
         android:id="@+id/tutorialOverlayView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

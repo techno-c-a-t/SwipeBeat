@@ -3,13 +3,13 @@ plugins {
 }
 
 android {
-    namespace = "com.technocat.slidebit"
+    namespace = "com.technocat.swipebeat"
     compileSdk {
         version = release(35)
     }
 
     defaultConfig {
-        applicationId = "com.technocat.slidebit"
+        applicationId = "com.technocat.swipebeat"
         minSdk = 21
         targetSdk = 35
         versionCode = 1

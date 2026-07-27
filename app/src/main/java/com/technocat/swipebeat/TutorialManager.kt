@@ -1,10 +1,10 @@
-package com.technocat.slidebit
+package com.technocat.swipebeat
 
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import android.view.View
-import com.technocat.slidebit.databinding.ActivityMainBinding
+import com.technocat.swipebeat.databinding.ActivityMainBinding
 
 class TutorialManager(
     private val context: Context,

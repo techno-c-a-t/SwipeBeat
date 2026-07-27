@@ -1,4 +1,4 @@
-package com.technocat.slidebit
+package com.technocat.swipebeat
 
 import android.Manifest
 import android.content.Context
@@ -26,8 +26,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.technocat.slidebit.databinding.ActivityMainBinding
-import com.technocat.slidebit.databinding.LayoutSourcesSheetBinding
+import com.technocat.swipebeat.databinding.ActivityMainBinding
+import com.technocat.swipebeat.databinding.LayoutSourcesSheetBinding
 import java.io.File
 
 class MainActivity : AppCompatActivity() {

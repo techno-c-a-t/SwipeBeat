@@ -1,4 +1,4 @@
-package com.technocat.slidebit
+package com.technocat.swipebeat
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
