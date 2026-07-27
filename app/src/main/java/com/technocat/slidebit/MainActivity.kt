@@ -232,6 +232,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         playerEngine = AudioPlayerEngine(this)
+        tutorialManager = TutorialManager(this, this, binding.tutorialOverlayView, viewModel)
 
         loadSettingsFromPrefs()
         setupListeners()
@@ -242,6 +243,10 @@ class MainActivity : AppCompatActivity() {
         setupBackPressed()
         updatePrepScreenStatus()
         updateResumeButtonState()
+
+        if (tutorialManager.isFirstLaunch()) {
+            showWelcomeTutorialDialog()
+        }
     }
 
     private fun setupListeners() {
@@ -406,7 +411,21 @@ class MainActivity : AppCompatActivity() {
                 playerEngine.setPlaybackSpeed(viewModel.settings.speed)
 
                 val startMs = if (viewModel.settings.isSmartJumpEnabled) {
-                    viewModel.settings.smartJumpSeconds * 1000L
+                    val secMs = viewModel.settings.smartJumpSeconds * 1000L
+                    var pctMs = 0L
+                    try {
+                        val retriever = android.media.MediaMetadataRetriever()
+                        retriever.setDataSource(this, track.uri)
+                        val durationStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)
+                        val durationMs = durationStr?.toLongOrNull() ?: 0L
+                        retriever.release()
+                        if (durationMs > 0) {
+                            pctMs = (durationMs * viewModel.settings.smartJumpPct) / 100L
+                        }
+                    } catch (e: Exception) {
+                        // ignore fallback
+                    }
+                    maxOf(secMs, pctMs)
                 } else {
                     0L
                 }
@@ -578,6 +597,9 @@ class MainActivity : AppCompatActivity() {
         binding.sbSmartStartSec.progress = viewModel.settings.smartJumpSeconds
         binding.tvSmartStartSecLabel.text = "Смещение: ${viewModel.settings.smartJumpSeconds} сек"
 
+        binding.sbSmartStartPct.progress = viewModel.settings.smartJumpPct
+        binding.tvSmartStartPctLabel.text = "Смещение по процентам: ${viewModel.settings.smartJumpPct}%"
+
         binding.sbVibrationStrength.progress = viewModel.settings.vibrationStrength
         binding.tvVibeLabel.text = "Сила вибрации: ${viewModel.settings.vibrationStrength} ms"
 
@@ -613,7 +635,9 @@ class MainActivity : AppCompatActivity() {
 
         binding.sbSmartStartPct.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                viewModel.settings.smartJumpPct = progress
                 binding.tvSmartStartPctLabel.text = "Смещение по процентам: $progress%"
+                saveSettingsToPrefs()
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
@@ -731,6 +755,46 @@ class MainActivity : AppCompatActivity() {
         binding.btnClearMetadataCache.setOnClickListener {
             LocalDirectoryScanner.getCache(this).clear()
             Toast.makeText(this, "Кэш метаданных очищен", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.btnRestartTutorial.setOnClickListener {
+            binding.screenSettings.visibility = View.GONE
+            binding.screenPrep.visibility = View.VISIBLE
+            showWelcomeTutorialDialog()
+        }
+
+        val hintPopupWindow = SettingsHintPopupWindow(this)
+
+        binding.btnHintSmartStart.setOnClickListener { view ->
+            hintPopupWindow.show(view, "Умный старт: Автоматически пропускает интро и перемотает трек на указанные секунды или проценты при открытии.")
+        }
+
+        binding.btnHintAutoplay.setOnClickListener { view ->
+            hintPopupWindow.show(view, "Автостарт: Автоматически запускает воспроизведение следующего трека сразу после свайпа.")
+        }
+
+        binding.btnHintAdvancedSources.setOnClickListener { view ->
+            hintPopupWindow.show(view, "Расширенный режим источников: Добавляет кнопки «+» и «−» возле каждого источника в списке, позволяя вручную включать или исключать его треки из сортировки.")
+        }
+
+        binding.btnHintParseTextPlaylists.setOnClickListener { view ->
+            hintPopupWindow.show(view, "Любой текст как плейлист: Разрешает импортировать плейлисты из любых файлов (например .txt), содержащих пути к трекам.")
+        }
+
+        binding.btnHintAutosave.setOnClickListener { view ->
+            hintPopupWindow.show(view, "Автосохранение сессии: Сохраняет промежуточный прогресс сортировки в памяти каждые N треков.")
+        }
+
+        binding.btnHintMetadataCache.setOnClickListener { view ->
+            hintPopupWindow.show(view, "Кэшировать метаданные: Сохраняет теги и обложки треков для мгновенной повторной загрузки.")
+        }
+
+        binding.btnHintBlacklist.setOnClickListener { view ->
+            hintPopupWindow.show(view, "Черный список папок: Автоматически скрывает треки из указанных папок (например, системные звуки или диктофонные записи) из очереди сортировки.")
+        }
+
+        binding.btnHintSessionLogic.setOnClickListener { view ->
+            hintPopupWindow.show(view, "Логика сессии: Определяет правило объединения треков при выборе 2 и более источников (0 — объединить все, 1 — только дубликаты, 2 — только уникальные).")
         }
 
         binding.btnRestoreDefaults.setOnClickListener {
@@ -1753,6 +1817,7 @@ class MainActivity : AppCompatActivity() {
         prefs.edit().apply {
             putBoolean("SettingSmartJump", viewModel.settings.isSmartJumpEnabled)
             putInt("SettingSmartJumpSec", viewModel.settings.smartJumpSeconds)
+            putInt("SettingSmartJumpPct", viewModel.settings.smartJumpPct)
             putInt("SettingVibeStrength", viewModel.settings.vibrationStrength)
             putFloat("SettingCardScale", viewModel.settings.cardScale)
             putBoolean("SettingAutoplay", viewModel.settings.isAutoplayEnabled)
@@ -1779,6 +1844,7 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("SlideboxPrefs", MODE_PRIVATE)
         viewModel.settings.isSmartJumpEnabled = prefs.getBoolean("SettingSmartJump", false)
         viewModel.settings.smartJumpSeconds = prefs.getInt("SettingSmartJumpSec", 30)
+        viewModel.settings.smartJumpPct = prefs.getInt("SettingSmartJumpPct", 10)
         viewModel.settings.vibrationStrength = prefs.getInt("SettingVibeStrength", 80)
         viewModel.settings.cardScale = prefs.getFloat("SettingCardScale", 1.0f)
         viewModel.settings.isAutoplayEnabled = prefs.getBoolean("SettingAutoplay", true)

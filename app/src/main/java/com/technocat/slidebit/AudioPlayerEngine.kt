@@ -19,11 +19,8 @@ class AudioPlayerEngine(private val context: Context) {
     fun play(track: Track, startPositionMs: Long = 0L) {
         player?.let { p ->
             val mediaItem = MediaItem.fromUri(track.uri)
-            p.setMediaItem(mediaItem)
+            p.setMediaItem(mediaItem, startPositionMs)
             p.prepare()
-            if (startPositionMs > 0) {
-                p.seekTo(startPositionMs)
-            }
             p.play()
         }
     }

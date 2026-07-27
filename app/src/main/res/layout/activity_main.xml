@@ -21,7 +21,7 @@
             android:id="@+id/tvAppName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="SlideBit"
+            android:text="SwipeBeat"
             android:textColor="#F4F4F5"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -427,14 +427,19 @@
 
         <TextView
             android:id="@+id/btnOpenHistory"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/bg_circle_translucent"
-            android:text="🕒"
-            android:textSize="18sp"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_button_secondary"
+            android:text="📜 История"
+            android:textColor="#F4F4F5"
+            android:textSize="14sp"
+            android:textStyle="bold"
             android:gravity="center"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/viewTopTrigger" />
+            app:layout_constraintTop_toTopOf="@id/btnExitSort"
+            app:layout_constraintBottom_toBottomOf="@id/btnExitSort" />
 
         <!-- Track Card Frame Container -->
         <FrameLayout
@@ -721,6 +726,19 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
+                <!-- Button to restart tutorial -->
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnRestartTutorial"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="24dp"
+                    android:background="@drawable/bg_button_secondary"
+                    android:text="🚀 Пройти обучение заново"
+                    android:textColor="#F4F4F5"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textAllCaps="false" />
+
                 <!-- Раздел 1: Умный старт -->
                 <TextView
                     android:layout_width="wrap_content"
@@ -745,22 +763,37 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <RelativeLayout
+                        <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="start|center_vertical"
+                                android:maxLines="2"
                                 android:text="Быстрый старт (Пропуск интро)"
                                 android:textColor="#F4F4F5"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
+                            <TextView
+                                android:id="@+id/btnHintSmartStart"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginEnd="4dp"
+                                android:gravity="center"
+                                android:text="❓"
+                                android:textColor="#818CF8"
+                                android:textSize="13sp"
+                                android:clickable="true"
+                                android:focusable="true" />
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/switchSmartStart"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true" />
-                        </RelativeLayout>
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
 
                         <!-- Seekbars inside smart start -->
                         <TextView
@@ -824,23 +857,38 @@
                         android:padding="16dp">
 
                         <!-- Autoplay Switch -->
-                        <RelativeLayout
+                        <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="start|center_vertical"
+                                android:maxLines="2"
                                 android:text="Автостарт воспроизведения"
                                 android:textColor="#F4F4F5"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
+                            <TextView
+                                android:id="@+id/btnHintAutoplay"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginEnd="4dp"
+                                android:gravity="center"
+                                android:text="❓"
+                                android:textColor="#818CF8"
+                                android:textSize="13sp"
+                                android:clickable="true"
+                                android:focusable="true" />
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/switchAutoplay"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
                                 android:checked="true" />
-                        </RelativeLayout>
+                        </LinearLayout>
 
                         <!-- Theme selector -->
                         <TextView
@@ -969,40 +1017,70 @@
                             android:orientation="vertical"
                             android:padding="16dp">
 
-                            <RelativeLayout
+                            <LinearLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content">
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
                                 <TextView
-                                    android:layout_width="wrap_content"
+                                    android:layout_width="0dp"
                                     android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="start|center_vertical"
+                                    android:maxLines="2"
                                     android:text="Расширенный режим источников"
                                     android:textColor="#F4F4F5"
                                     android:textSize="14sp"
                                     android:textStyle="bold" />
+                                <TextView
+                                    android:id="@+id/btnHintAdvancedSources"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:layout_marginEnd="4dp"
+                                    android:gravity="center"
+                                    android:text="❓"
+                                    android:textColor="#818CF8"
+                                    android:textSize="13sp"
+                                    android:clickable="true"
+                                    android:focusable="true" />
                                 <androidx.appcompat.widget.SwitchCompat
                                     android:id="@+id/switchAdvancedSources"
                                     android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_alignParentEnd="true" />
-                            </RelativeLayout>
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
 
-                            <RelativeLayout
+                            <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="16dp">
+                                android:layout_marginTop="16dp"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
                                 <TextView
-                                    android:layout_width="wrap_content"
+                                    android:layout_width="0dp"
                                     android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="start|center_vertical"
+                                    android:maxLines="2"
                                     android:text="Любой текст как плейлист"
                                     android:textColor="#F4F4F5"
                                     android:textSize="14sp"
                                     android:textStyle="bold" />
+                                <TextView
+                                    android:id="@+id/btnHintParseTextPlaylists"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:layout_marginEnd="4dp"
+                                    android:gravity="center"
+                                    android:text="❓"
+                                    android:textColor="#818CF8"
+                                    android:textSize="13sp"
+                                    android:clickable="true"
+                                    android:focusable="true" />
                                 <androidx.appcompat.widget.SwitchCompat
                                     android:id="@+id/switchParseAllTextPlaylists"
                                     android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_alignParentEnd="true" />
-                            </RelativeLayout>
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
 
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
@@ -1057,15 +1135,34 @@
                                 android:layout_marginTop="8dp" />
 
                             <!-- Autosave Interval -->
-                            <TextView
-                                android:id="@+id/tvAutosaveLabel"
-                                android:layout_width="wrap_content"
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Автосохранение сессии: каждые 5 треков"
-                                android:textColor="#F4F4F5"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:layout_marginTop="16dp" />
+                                android:layout_marginTop="16dp"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+                                <TextView
+                                    android:id="@+id/tvAutosaveLabel"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="start|center_vertical"
+                                    android:maxLines="2"
+                                    android:text="Автосохранение сессии: каждые 5 треков"
+                                    android:textColor="#F4F4F5"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+                                <TextView
+                                    android:id="@+id/btnHintAutosave"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:gravity="center"
+                                    android:text="❓"
+                                    android:textColor="#818CF8"
+                                    android:textSize="13sp"
+                                    android:clickable="true"
+                                    android:focusable="true" />
+                            </LinearLayout>
                             <SeekBar
                                 android:id="@+id/sbAutosaveInterval"
                                 android:layout_width="match_parent"
@@ -1091,23 +1188,38 @@
                             android:orientation="vertical"
                             android:padding="16dp">
 
-                            <RelativeLayout
+                            <LinearLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content">
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
                                 <TextView
-                                    android:layout_width="wrap_content"
+                                    android:layout_width="0dp"
                                     android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="start|center_vertical"
+                                    android:maxLines="2"
                                     android:text="Кэшировать метаданные"
                                     android:textColor="#F4F4F5"
                                     android:textSize="14sp"
                                     android:textStyle="bold" />
+                                <TextView
+                                    android:id="@+id/btnHintMetadataCache"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:layout_marginEnd="4dp"
+                                    android:gravity="center"
+                                    android:text="❓"
+                                    android:textColor="#818CF8"
+                                    android:textSize="13sp"
+                                    android:clickable="true"
+                                    android:focusable="true" />
                                 <androidx.appcompat.widget.SwitchCompat
                                     android:id="@+id/switchMetadataCache"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_alignParentEnd="true"
                                     android:checked="true" />
-                            </RelativeLayout>
+                            </LinearLayout>
 
                             <androidx.appcompat.widget.AppCompatButton
                                 android:id="@+id/btnClearMetadataCache"
@@ -1138,14 +1250,33 @@
                             android:orientation="vertical"
                             android:padding="16dp">
 
-                            <TextView
-                                android:id="@+id/tvSettingsLogicLabel"
-                                android:layout_width="wrap_content"
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Логика сессии: Объединить"
-                                android:textColor="#F4F4F5"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+                                <TextView
+                                    android:id="@+id/tvSettingsLogicLabel"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="start|center_vertical"
+                                    android:maxLines="2"
+                                    android:text="Логика сессии: Объединить"
+                                    android:textColor="#F4F4F5"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+                                <TextView
+                                    android:id="@+id/btnHintSessionLogic"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:gravity="center"
+                                    android:text="❓"
+                                    android:textColor="#818CF8"
+                                    android:textSize="13sp"
+                                    android:clickable="true"
+                                    android:focusable="true" />
+                            </LinearLayout>
 
                             <SeekBar
                                 android:id="@+id/sbSettingsLogic"
@@ -1182,13 +1313,32 @@
                             android:orientation="vertical"
                             android:padding="16dp">
 
-                            <TextView
-                                android:layout_width="wrap_content"
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Черный список папок"
-                                android:textColor="#F4F4F5"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="start|center_vertical"
+                                    android:maxLines="2"
+                                    android:text="Черный список папок"
+                                    android:textColor="#F4F4F5"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+                                <TextView
+                                    android:id="@+id/btnHintBlacklist"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:gravity="center"
+                                    android:text="❓"
+                                    android:textColor="#818CF8"
+                                    android:textSize="13sp"
+                                    android:clickable="true"
+                                    android:focusable="true" />
+                            </LinearLayout>
 
                             <TextView
                                 android:layout_width="wrap_content"

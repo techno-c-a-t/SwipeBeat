@@ -98,9 +98,10 @@ class TutorialOverlayView @JvmOverloads constructor(
 
         btnNext = AppCompatButton(context).apply {
             text = "Далее"
-            setTextColor(Color.WHITE)
+            setTextColor(Color.parseColor("#F4F4F5"))
             textSize = 14f
-            background = context.getDrawable(R.drawable.bg_button_primary)
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            background = context.getDrawable(R.drawable.bg_button_secondary)
             setPadding(dpToPx(16), 0, dpToPx(16), 0)
             setOnClickListener { onNextClickListener?.invoke() }
         }
@@ -119,9 +120,9 @@ class TutorialOverlayView @JvmOverloads constructor(
         }
         addView(container, cardParams)
 
-        // Block touches to background
+        // Any tap anywhere on overlay view advances to next tutorial step!
         setOnClickListener {
-            // Prevent clicks passing through translucent mask unless desired
+            onNextClickListener?.invoke()
         }
     }
 
@@ -159,9 +160,10 @@ class TutorialOverlayView @JvmOverloads constructor(
         } else {
             isHighlighting = false
             targetRect.set(0f, 0f, 0f, 0f)
-            // Center tooltip if no target view
+            // Position tooltip safely at top of viewport if no target view
             val cardParams = cardTooltip?.layoutParams as? LayoutParams
-            cardParams?.gravity = Gravity.CENTER
+            cardParams?.gravity = Gravity.TOP
+            cardParams?.setMargins(dpToPx(24), dpToPx(80), dpToPx(24), dpToPx(24))
             cardTooltip?.layoutParams = cardParams
         }
 
@@ -174,13 +176,15 @@ class TutorialOverlayView @JvmOverloads constructor(
         val cardParams = cardTooltip?.layoutParams as? LayoutParams ?: return
 
         if (targetBottom > screenHeight / 2f) {
-            // Target is in bottom half -> place tooltip at top
+            // Target is in bottom half -> place tooltip at top safely
             cardParams.gravity = Gravity.TOP
-            cardParams.setMargins(dpToPx(24), (targetTop - dpToPx(160)).coerceAtLeast(dpToPx(48)).toInt(), dpToPx(24), dpToPx(24))
+            val topMargin = (targetTop - dpToPx(160)).coerceAtLeast(dpToPx(48).toFloat()).toInt()
+            cardParams.setMargins(dpToPx(24), topMargin, dpToPx(24), dpToPx(24))
         } else {
-            // Target is in top half -> place tooltip below target
+            // Target is in top half -> place tooltip below target, clamped to screen height
             cardParams.gravity = Gravity.TOP
-            cardParams.setMargins(dpToPx(24), (targetBottom + dpToPx(16)).toInt(), dpToPx(24), dpToPx(24))
+            val topMargin = (targetBottom + dpToPx(16)).coerceAtMost(screenHeight - dpToPx(220)).coerceAtLeast(dpToPx(48).toFloat()).toInt()
+            cardParams.setMargins(dpToPx(24), topMargin, dpToPx(24), dpToPx(24))
         }
         cardTooltip?.layoutParams = cardParams
     }

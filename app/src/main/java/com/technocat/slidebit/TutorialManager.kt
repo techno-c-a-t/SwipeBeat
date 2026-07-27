@@ -12,7 +12,7 @@ class TutorialManager(
     private val overlayView: TutorialOverlayView,
     private val viewModel: SortingViewModel
 ) {
-    private val prefs: SharedPreferences = context.getSharedPreferences("slidebit_prefs", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences = context.getSharedPreferences("swipebeat_prefs", Context.MODE_PRIVATE)
 
     companion object {
         private const val KEY_TUTORIAL_COMPLETED = "tutorial_completed"
@@ -78,8 +78,8 @@ class TutorialManager(
                 mainActivity.showPrepScreen()
                 overlayView.highlightView(
                     binding.tvAppName,
-                    "Добро пожаловать в SlideBit!",
-                    "SlideBit — приложение для молниеносной сортировки вашей музыки с помощью простых свайпов.",
+                    "Добро пожаловать в SwipeBeat!",
+                    "SwipeBeat — приложение для молниеносной сортировки вашей музыки с помощью простых свайпов.",
                     "Шаг 1 из 11"
                 )
             }
@@ -124,22 +124,24 @@ class TutorialManager(
                 overlayView.highlightView(
                     null,
                     "Менеджер источников",
-                    "Здесь можно сканировать папки, добавлять плейлисты или быстрые директории. Мы уже подготовили пара демо-треков для интерактивного знакомства!",
+                    "Здесь можно сканировать папки, добавлять плейлисты или быстрые директории. Мы уже подготовили пару демо-треков для интерактивного знакомства!",
                     "Шаг 6 из 11"
                 )
             }
             Step.SETTINGS_OFFSET -> {
                 mainActivity.showSettingsScreen()
+                val targetView = binding.screenSettings.findViewById<View>(R.id.switchSmartStart) ?: binding.screenSettings
                 overlayView.highlightView(
-                    binding.screenSettings.findViewById(R.id.tvSmartJumpTitle) ?: binding.screenSettings,
+                    targetView,
                     "Умный старт (Оффсет)",
                     "С помощью ползунков секунд и процентов плеер автоматически проматывает интро и запускает треки с самого интересного момента!",
                     "Шаг 7 из 11"
                 )
             }
             Step.SETTINGS_ADVANCED -> {
+                val targetView = binding.screenSettings.findViewById<View>(R.id.switchAdvancedSources) ?: binding.screenSettings
                 overlayView.highlightView(
-                    binding.screenSettings.findViewById(R.id.btnAdvancedSettings) ?: binding.screenSettings,
+                    targetView,
                     "Продвинутые настройки",
                     "Более глубокие параметры (парсинг любых текстовых файлов, кодировки и отладка) находятся в этой секции.",
                     "Шаг 8 из 11"
@@ -182,20 +184,18 @@ class TutorialManager(
             Track(
                 id = "demo_1",
                 title = "Demo Track 1 (Electronic)",
-                artist = "SlideBit Audio",
-                album = "Tutorial Demo",
+                artist = "SwipeBeat Audio",
                 filePath = "/demo/track1.mp3",
                 uri = Uri.parse("asset:///demo_sounds/demo_track_1.wav"),
-                durationMs = 15000L
+                metadataLoaded = true
             ),
             Track(
                 id = "demo_2",
                 title = "Demo Track 2 (Chill Acoustic)",
-                artist = "SlideBit Audio",
-                album = "Tutorial Demo",
+                artist = "SwipeBeat Audio",
                 filePath = "/demo/track2.mp3",
                 uri = Uri.parse("asset:///demo_sounds/demo_track_2.wav"),
-                durationMs = 20000L
+                metadataLoaded = true
             )
         )
         viewModel.setTrackQueue(tracks)

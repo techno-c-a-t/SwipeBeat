@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SlideBit"
+rootProject.name = "SwipeBeat"
 include(":app")

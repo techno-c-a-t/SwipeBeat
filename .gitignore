@@ -13,7 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
-
+.vscode/
 
 # Сборочные файлы (игнорирует сборку и в корне, и внутри app/)
 build/

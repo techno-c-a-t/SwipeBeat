@@ -70,7 +70,7 @@ class WelcomeTutorialDialogFragment : DialogFragment() {
             }
 
             val subtitle = TextView(context).apply {
-                text = "Приятно видеть тебя в SlideBit. Желаешь пройти короткое знакомство?"
+                text = "Приятно видеть тебя в SwipeBeat. Желаешь пройти короткое знакомство?"
                 setTextColor(Color.parseColor("#A1A1AA"))
                 textSize = 14f
                 setPadding(0, dpToPx(8), 0, dpToPx(24))
@@ -78,10 +78,10 @@ class WelcomeTutorialDialogFragment : DialogFragment() {
 
             val btnInteractive = AppCompatButton(context).apply {
                 text = "🚀 Погнали (Интерактивно)"
-                setTextColor(Color.WHITE)
+                setTextColor(Color.parseColor("#F4F4F5"))
                 textSize = 15f
                 typeface = android.graphics.Typeface.DEFAULT_BOLD
-                background = context.getDrawable(R.drawable.bg_button_primary)
+                background = context.getDrawable(R.drawable.bg_button_secondary)
                 setOnClickListener { onInteractive() }
             }
 
@@ -94,12 +94,12 @@ class WelcomeTutorialDialogFragment : DialogFragment() {
                 setOnClickListener { onFast() }
             }
 
-            val btnSkip = TextView(context).apply {
+            val btnSkip = AppCompatButton(context).apply {
                 text = "🤙 Я сам (Пропустить)"
-                setTextColor(Color.parseColor("#71717A"))
-                textSize = 14f
-                gravity = android.view.Gravity.CENTER
-                setPadding(0, dpToPx(16), 0, dpToPx(8))
+                setTextColor(Color.parseColor("#A1A1AA"))
+                textSize = 15f
+                typeface = android.graphics.Typeface.DEFAULT_BOLD
+                background = context.getDrawable(R.drawable.bg_button_secondary)
                 setOnClickListener { onSkip() }
             }
 
@@ -107,12 +107,12 @@ class WelcomeTutorialDialogFragment : DialogFragment() {
             root.addView(subtitle)
             root.addView(btnInteractive, android.widget.LinearLayout.LayoutParams(
                 android.widget.LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(50)
-            ).apply { setMargins(0, 0, 0, dpToPx(12)) })
+            ).apply { setMargins(0, 0, 0, dpToPx(10)) })
             root.addView(btnFast, android.widget.LinearLayout.LayoutParams(
                 android.widget.LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(50)
-            ))
+            ).apply { setMargins(0, 0, 0, dpToPx(10)) })
             root.addView(btnSkip, android.widget.LinearLayout.LayoutParams(
-                android.widget.LinearLayout.LayoutParams.MATCH_PARENT, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(50)
             ))
 
             return root
