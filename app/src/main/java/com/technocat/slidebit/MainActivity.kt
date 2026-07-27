@@ -797,6 +797,14 @@ class MainActivity : AppCompatActivity() {
             hintPopupWindow.show(view, "Логика сессии: Определяет правило объединения треков при выборе 2 и более источников (0 — объединить все, 1 — только дубликаты, 2 — только уникальные).")
         }
 
+        binding.btnAboutApp.setOnClickListener {
+            showLinkConfirmationDialog("https://swipebeat.technocat.cc?source=swipebeat&type=app")
+        }
+
+        binding.btnAboutAuthor.setOnClickListener {
+            showLinkConfirmationDialog("https://technocat.cc?source=swipebeat&type=app")
+        }
+
         binding.btnRestoreDefaults.setOnClickListener {
             androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Сбросить настройки?")
@@ -1938,5 +1946,25 @@ class MainActivity : AppCompatActivity() {
         binding.tvTopTriggerHint.visibility = View.VISIBLE
         binding.tvTopTriggerHint.alpha = 1.0f
         viewModel.initSession(viewModel.trackQueue.toList())
+    }
+
+    private fun showLinkConfirmationDialog(url: String) {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Перейти по ссылке?")
+            .setMessage(url)
+            .setPositiveButton("Да") { dialog, _ ->
+                try {
+                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Toast.makeText(this, "Не удалось открыть браузер", Toast.LENGTH_SHORT).show()
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Нет") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+            .show()
     }
 }
